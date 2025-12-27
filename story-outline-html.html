@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>故事大纲管理器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #ffb300 0%, #000000 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .title { font-size: 32px; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-indigo { background: #6366f1; color: white; }
+        
+        .timeline-container {
+            background: #1f2937;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .timeline-toolbar {
+            background: #374151;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .timeline-toolbar .btn { padding: 8px 16px; font-size: 14px; }
+        .timeline-toolbar span { color: white; font-weight: bold; }
+        
+        .timeline-canvas {
+            background: #1f2937;
+            overflow: auto;
+            max-height: 600px;
+            position: relative;
+        }
+        .timeline-header {
+            background: #111827;
+            height: 60px;
+            border-bottom: 2px solid #4b5563;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .chapter-label {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-right: 1px solid #4b5563;
+            padding: 10px;
+        }
+        .chapter-sublabel {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .timeline-grid {
+            min-height: 400px;
+            position: relative;
+            padding: 20px;
+        }
+        .event-block {
+            position: absolute;
+            height: 70px;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            user-select: none;
+        }
+        .event-block.editable {
+            cursor: grab;
+        }
+        .event-block:hover { transform: scaleY(1.02); z-index: 5; }
+        .event-block.dragging {
+            cursor: grabbing;
+            opacity: 0.8;
+            z-index: 100;
+            transform: scale(1.1);
+        }
+        .event-block.selected { 
+            border: 4px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+        .event-title {
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .event-time {
+            color: rgba(255,255,255,0.9);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .event-tags {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+        .event-tag {
+            background: rgba(0,0,0,0.3);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 16px;
+            background: rgba(255,255,255,0.8);
+            cursor: ew-resize;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-left: 2px solid white;
+        }
+        .event-block.editable .resize-handle {
+            display: flex;
+        }
+        .resize-handle:hover { background: white; }
+        .resize-handle::before {
+            content: '⋮';
+            color: rgba(0,0,0,0.5);
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 24px; font-weight: bold; color: #111827; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 32px;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+        }
+        .modal-close:hover { color: #111827; background: #f3f4f6; border-radius: 4px; }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #111827;
+        }
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        .info-box {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .info-box h3 {
+            color: #111827;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .info-box p { color: #4b5563; line-height: 1.6; }
+        
+        .tag-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .tag-item {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tag-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #1e40af;
+            padding: 0;
+            line-height: 1;
+        }
+        .tag-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .hint { font-size: 12px; color: #6b7280; margin-top: 4px; }
+        
+        .timeline-hint {
+            background: #374151;
+            padding: 10px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        .timeline-scale {
+            background: #1f2937;
+            border-top: 1px solid #4b5563;
+            padding: 5px 20px;
+            color: #9ca3af;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .chapter-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .chapter-item-view {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chapter-item-edit {
+            display: none;
+        }
+        .chapter-item.editing .chapter-item-view {
+            display: none;
+        }
+        .chapter-item.editing .chapter-item-edit {
+            display: block;
+        }
+        .chapter-info h4 {
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 5px;
+        }
+        .chapter-info p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .tag-stat-item {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .tag-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .tag-stat-name {
+            font-weight: bold;
+            color: #1e40af;
+            cursor: pointer;
+        }
+        .tag-stat-name:hover {
+            color: #1e3a8a;
+        }
+        .tag-stat-count {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .tag-stat-events {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .btn-sm { padding: 6px 12px; font-size: 14px; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">📖 故事大纲管理器 v1.0</div>
+            <div class="btn-group">
+                <button class="btn btn-purple" onclick="exportData()">📥 导出</button>
+                <label class="btn btn-indigo" style="margin: 0;">
+                    📤 导入
+                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
+                </label>
+                <button class="btn btn-primary" id="editModeBtn" onclick="toggleEditMode()">✎ 编辑</button>
+            </div>
+        </div>
+        
+        <div class="timeline-container">
+            <div class="timeline-toolbar">
+                <button class="btn btn-secondary btn-sm" onclick="zoomOut()">🔍−</button>
+                <input type="number" 
+                       id="zoomInput" 
+                       value="100" 
+                       min="10" 
+                       max="500" 
+                       step="5"
+                       onchange="setZoom(parseInt(this.value) || 100)"
+                       style="width: 70px; padding: 4px 8px; border: 1px solid #4b5563; border-radius: 4px; background: #1f2937; color: white; text-align: center;">
+                <span style="color: white;">%</span>
+                <button class="btn btn-secondary btn-sm" onclick="zoomIn()">🔍+</button>
+                
+                <button class="btn btn-secondary btn-sm" onclick="showDayManager()">⚙️ 天数管理</button>
+                <button class="btn btn-secondary btn-sm" onclick="showTagManager()">🏷️ 标签管理</button>
+                
+                <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;">➕ 添加事件</button>
+            </div>
+            
+            <div class="timeline-canvas" id="timelineCanvas">
+                <div class="timeline-header" id="timelineHeader"></div>
+                <div class="timeline-grid" id="timelineGrid"></div>
+            </div>
+            
+            <div class="timeline-scale" id="timelineScale">
+                <span id="scaleStart">序5</span>
+                <span id="scaleEnd">第100章</span>
+            </div>
+            
+            <div class="timeline-hint" id="timelineHint">
+                点击事件查看详情
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Detail Modal -->
+    <div class="modal" id="eventDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="eventDetailTitle"></div>
+                <button class="modal-close" onclick="closeEventDetail()">×</button>
+            </div>
+            <div class="modal-body" id="eventDetailBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="editEvent()">✏️ 编辑</button>
+                <button class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">🗑️ 删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Form Modal -->
+    <div class="modal" id="eventFormModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="eventFormTitle">添加事件</div>
+                <button class="modal-close" onclick="closeEventForm()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label class="form-label">事件标题</label>
+                        <input type="text" class="form-input" id="eventTitle" placeholder="输入事件标题">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">详细描述</label>
+                        <textarea class="form-textarea" id="eventDescription" placeholder="详细描述事件内容"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">起始章节（第几章）</label>
+                            <input type="number" class="form-input" id="eventStartTime" value="1" min="1" onchange="updateDayHint()">
+                            <div class="hint" id="chapterHint">修改此值可以改变事件的起始章节</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">持续章节（章数）</label>
+                            <input type="number" class="form-input" id="eventDuration" value="2" min="1">
+                            <div class="hint">修改此值可以改变事件的长度</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">行位置（layer）</label>
+                        <input type="number" class="form-input" id="eventLayer" value="0" min="0">
+                        <div class="hint">提示：行位置决定事件的垂直位置，0在最上方（章节范围大的事件建议放在上方）                    
+                    <div class="form-group">
+                        <label class="form-label">事件颜色</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" class="form-input" id="eventColor" value="#3b82f6" style="width: 80px; height: 40px; cursor: pointer;">
+                            <span id="colorPreview" style="flex: 1; padding: 10px; border-radius: 6px; background: #3b82f6; color: white; text-align: center; font-weight: bold;">颜色预览</span>
+                        </div>
+                        <div class="hint">选择此事件在时间线上显示的颜色</div>
+                    </div>
+</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">标签</label>
+                        <div class="tag-list" id="eventTagsList"></div>
+                        <div class="tag-input-group">
+                            <input type="text" class="form-input" id="eventTagInput" placeholder="输入标签，按回车添加">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addTag()">添加</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="showTagSelector()">📋 选择</button>
+                        </div>
+                        <div id="tagSelectorDropdown" style="display: none; margin-top: 10px; max-height: 200px; overflow-y: auto; border: 2px solid #e5e7eb; border-radius: 6px; padding: 10px; background: white;">
+                            <div style="font-weight: bold; margin-bottom: 8px; color: #6b7280; font-size: 12px;">点击标签添加到事件</div>
+                            <div id="availableTagsList"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEventForm()">❌ 取消</button>
+                <button class="btn btn-primary" onclick="saveEvent()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Manager Modal -->
+    <div class="modal" id="chapterManagerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ 天数管理</div>
+                <button class="modal-close" onclick="closeDayManager()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="chapterList"></div>
+                
+                <div style="border-top: 2px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
+                    <h3 style="font-weight: bold; margin-bottom: 15px; color: #111827;">添加新天数</h3>
+                    <div class="info-box" style="background: #e0f2fe; border: 1px solid #0284c7; margin-bottom: 15px;">
+                        <p style="color: #0c4a6e; font-size: 13px; margin: 0;">
+                            💡 <strong>提示：</strong>章节显示规则<br>
+                            • 负数显示为"序X"（-5显示为"序5"）<br>
+                            • 0显示为"序章"<br>
+                            • 正数显示为"第X章"（5显示为"第5章"）<br>
+                            • 支持倒序写作（如第100章到第90章）<br>
+                            • <strong style="color: #dc2626;">⚠️ 章节范围不能重叠</strong>
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">天数名称</label>
+                        <input type="text" class="form-input" id="newChapterName" placeholder="例如：第1天">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">起始章节</label>
+                            <input type="number" class="form-input" id="newChapterStart" value="1">
+                            <div class="hint">可以是任意数字（支持负数、倒序）</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">结束章节</label>
+                            <input type="number" class="form-input" id="newChapterEnd" value="10">
+                            <div class="hint">可以小于起始章节（倒序写作）</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="addDay()" style="width: 100%;">➕ 添加天数</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDayManager()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Manager Modal -->
+    <div class="modal" id="tagManagerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🏷️ 标签管理</div>
+                <button class="modal-close" onclick="closeTagManager()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; padding-bottom: 20px;">
+                    <h3 style="font-weight: bold; margin-bottom: 15px; color: #111827;">创建新标签</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-input" id="newTagInput" placeholder="输入新标签名称（自动添加#）" style="flex: 1;">
+                        <button class="btn btn-success" onclick="createNewTag()">➕ 创建标签</button>
+                    </div>
+                    <div class="hint" style="margin-top: 8px;">创建的标签会自动添加到标签库中</div>
+                </div>
+                
+                <div id="tagManagerBody"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTagManager()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editMode = false;
+        let zoom = 100;
+        let selectedEvent = null;
+        let editingEvent = null;
+        let currentTags = [];
+        let draggingEvent = null;
+        let dragOffset = { x: 0, y: 0 };
+        let hasDragged = false;
+        let resizingEvent = null;
+        
+        // 全局标签库
+        let globalTags = new Set();
+        
+        let events = [
+            { id: 't1', title: '贯穿全文', description: '整个故事的核心线，贯穿全文',
+              startTime: 1, duration: 100, layer: 0, color: 'rgb(147, 51, 234)', tags: ['#全局', '#主线'] },
+            { id: 't2', title: '穿越觉醒', description: '周明瑞穿越到500地球，获得系统',
+              startTime: 1, duration: 2, layer: 1, color: 'rgb(59, 130, 246)', tags: ['#开局', '#穿越', '#廷根'] },
+            { id: 't3', title: '事件1', description: '通过测试，成为值夜者',
+              startTime: 6, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#值夜者', '#廷根'] },
+            { id: 't4', title: '事件2', description: '在灰雾之上获得三件套',
+              startTime: 4, duration: 2, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#三件套', '#唯一性', '#灰雾'] },
+            { id: 't5', title: '前世回忆', description: '周明瑞穿越前的记忆片段',
+              startTime: -3, duration: 3, layer: 1, color: 'rgb(107, 114, 128)', tags: ['#回忆', '#前世'] }
+        ];
+        
+        let days = [
+            { id: 1, name: '序章篇', startChapter: -5, endChapter: 0 },
+            { id: 2, name: '第1天', startChapter: 1, endChapter: 10 },
+            { id: 3, name: '第2天', startChapter: 11, endChapter: 20 },
+            { id: 4, name: '第3天', startChapter: 21, endChapter: 30 }
+        ];
+        
+        // 章节号格式化函数
+        function formatChapter(num) {
+            if (num < 0) {
+                return `序${-num}`;  // -5 显示为 "序5"
+            } else if (num === 0) {
+                return '序章';
+            } else {
+                return `第${num}章`;
+            }
+        }
+        
+        // 章节范围格式化
+        function formatChapterRange(start, end) {
+            return `${formatChapter(start)}-${formatChapter(end)}`;
+        }
+        
+        // 检查章节范围是否重叠
+        function checkChapterOverlap(newStart, newEnd, excludeId = null) {
+            const newMin = Math.min(newStart, newEnd);
+            const newMax = Math.max(newStart, newEnd);
+            
+            for (let day of days) {
+                if (excludeId !== null && day.id === excludeId) continue;
+                
+                const dayMin = Math.min(day.startChapter, day.endChapter);
+                const dayMax = Math.max(day.startChapter, day.endChapter);
+                
+                // 检查是否有重叠
+                if (!(newMax < dayMin || newMin > dayMax)) {
+                    return {
+                        overlap: true,
+                        conflictDay: day
+                    };
+                }
+            }
+            
+            return { overlap: false };
+        }
+        
+        const defaultEventColor = 'rgb(59, 130, 246)';
+        
+        function init() {
+            initializeGlobalTags();
+            updateZoom();
+            render();
+            setupEventListeners();
+        }
+        
+
+        // 初始化全局标签库
+        function initializeGlobalTags() {
+            events.forEach(event => {
+                if (event.tags) {
+                    event.tags.forEach(tag => globalTags.add(tag));
+                }
+            });
+        }
+        
+        // 颜色选择器事件监听
+        function setupColorPicker() {
+            const colorInput = document.getElementById('eventColor');
+            const colorPreview = document.getElementById('colorPreview');
+            
+            if (colorInput) {
+                colorInput.addEventListener('input', (e) => {
+                    const color = e.target.value;
+                    colorPreview.style.background = color;
+                    colorPreview.textContent = color.toUpperCase();
+                });
+            }
+        }
+        
+        // 创建新标签
+        function createNewTag() {
+            const input = document.getElementById('newTagInput');
+            let tag = input.value.trim();
+            
+            if (!tag) {
+                alert('请输入标签名称');
+                return;
+            }
+            
+            // 自动添加#号
+            if (!tag.startsWith('#')) {
+                tag = '#' + tag;
+            }
+            
+            globalTags.add(tag);
+            input.value = '';
+            
+            alert(`✅ 标签 "${tag}" 已创建！`);
+            renderTagManager();
+        }
+        
+        // 显示标签选择器
+        function showTagSelector() {
+            const dropdown = document.getElementById('tagSelectorDropdown');
+            const tagsList = document.getElementById('availableTagsList');
+            
+            if (dropdown.style.display === 'none') {
+                // 渲染可用标签
+                const availableTags = Array.from(globalTags).filter(tag => !currentTags.includes(tag));
+                
+                if (availableTags.length === 0) {
+                    tagsList.innerHTML = '<div style="color: #6b7280; font-style: italic;">暂无可选标签</div>';
+                } else {
+                    tagsList.innerHTML = availableTags.map(tag => `
+                        <span class="tag-item" style="cursor: pointer; margin: 4px;" onclick="selectTagFromList('${tag}')">
+                            ${tag}
+                        </span>
+                    `).join('');
+                }
+                
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+        
+        // 从列表选择标签
+        function selectTagFromList(tag) {
+            if (!currentTags.includes(tag)) {
+                currentTags.push(tag);
+                renderTagsList();
+                showTagSelector(); // 刷新列表
+            }
+        }
+        
+        // RGB转十六进制
+        function rgbToHex(rgb) {
+            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!match) return '#3b82f6';
+            
+            const hex = (x) => {
+                const h = parseInt(x).toString(16);
+                return h.length === 1 ? '0' + h : h;
+            };
+            
+            return '#' + hex(match[1]) + hex(match[2]) + hex(match[3]);
+        }
+        
+        // 十六进制转RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? 
+                `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})` :
+                'rgb(59, 130, 246)';
+        }
+
+        function setupEventListeners() {
+            document.getElementById('eventTagInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+            
+            setupColorPicker();
+        }
+        
+        function toggleEditMode() {
+            editMode = !editMode;
+            const btn = document.getElementById('editModeBtn');
+            const addBtn = document.getElementById('addEventBtn');
+            const hint = document.getElementById('timelineHint');
+            
+            if (editMode) {
+                btn.textContent = '✓ 编辑中';
+                btn.className = 'btn btn-success';
+                addBtn.style.display = 'block';
+                hint.textContent = '拖动事件可改变位置和章节，拖动右边缘可调整持续章节数';
+            } else {
+                btn.textContent = '✎ 编辑';
+                btn.className = 'btn btn-primary';
+                addBtn.style.display = 'none';
+                hint.textContent = '点击事件查看详情';
+            }
+            
+            render();
+        }
+        
+        function zoomIn() {
+            zoom = Math.min(500, zoom + 10);
+            updateZoom();
+        }
+        
+        function zoomOut() {
+            zoom = Math.max(10, zoom - 10);
+            updateZoom();
+        }
+        
+        function setZoom(value) {
+            zoom = Math.max(10, Math.min(500, value));
+            updateZoom();
+        }
+        
+        function updateZoom() {
+            document.getElementById('zoomInput').value = zoom;
+            render();
+        }
+        
+        function render() {
+            renderTimeline();
+        }
+        
+        function renderTimeline() {
+            const chapterWidth = (zoom / 100) * 50;
+            
+            // 动态计算时间线范围
+            const allChapters = [
+                ...days.flatMap(d => [d.startChapter, d.endChapter]),
+                ...events.flatMap(e => [e.startTime, e.startTime + e.duration])
+            ];
+            const minChapter = Math.min(...allChapters, 0);
+            const maxChapter = Math.max(...allChapters, 100);
+            const timelineWidth = (maxChapter - minChapter) * chapterWidth;
+            
+            const maxLayer = Math.max(...events.map(e => e.layer), 5);
+            
+            // Render header - 显示天数
+            const header = document.getElementById('timelineHeader');
+            header.style.minWidth = timelineWidth + 'px';
+            header.innerHTML = days.map(day => {
+                const dayWidth = Math.abs(day.endChapter - day.startChapter) + 1;
+                const leftPos = (Math.min(day.startChapter, day.endChapter) - minChapter) * chapterWidth;
+                return `
+                <div class="chapter-label" style="
+                    position: absolute;
+                    left: ${leftPos}px;
+                    width: ${dayWidth * chapterWidth}px;
+                ">
+                    <div>${day.name}</div>
+                    <div class="chapter-sublabel">${formatChapterRange(day.startChapter, day.endChapter)}</div>
+                </div>
+            `;
+            }).join('');
+            
+            // Render events
+            const grid = document.getElementById('timelineGrid');
+            grid.style.minWidth = timelineWidth + 'px';
+            grid.style.minHeight = (maxLayer + 1) * 80 + 100 + 'px';
+            grid.innerHTML = events.map(event => {
+                const left = (event.startTime - minChapter) * chapterWidth;
+                const width = Math.max(event.duration * chapterWidth, 80);
+                const top = event.layer * 80;
+                
+                return `
+                    <div class="event-block ${editMode ? 'editable' : ''}" 
+                         data-id="${event.id}"
+                         data-min-chapter="${minChapter}"
+                         style="
+                            left: ${left}px;
+                            width: ${width}px;
+                            top: ${top}px;
+                            background-color: ${event.color};
+                         ">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-time">${formatChapterRange(event.startTime, event.startTime + event.duration)}</div>
+                        ${event.tags ? `
+                            <div class="event-tags">
+                                ${event.tags.slice(0, 2).map(tag => `
+                                    <span class="event-tag">${tag}</span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="resize-handle" data-id="${event.id}"></div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update scale
+            document.getElementById('scaleStart').textContent = formatChapter(minChapter);
+            document.getElementById('scaleEnd').textContent = formatChapter(maxChapter);
+            
+            // Add drag event listeners
+            document.querySelectorAll('.event-block').forEach(block => {
+                block.addEventListener('mousedown', (e) => {
+                    if (!e.target.classList.contains('resize-handle')) {
+                        startDrag(e);
+                    }
+                });
+                block.addEventListener('click', (e) => {
+                    if (!hasDragged && !e.target.classList.contains('resize-handle')) {
+                        showEventDetail(block.dataset.id);
+                    }
+                    hasDragged = false;
+                });
+            });
+            
+            // Add resize event listeners
+            document.querySelectorAll('.resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', (e) => startResize(e));
+            });
+        }
+        
+        function startDrag(e) {
+            if (!editMode) return;
+            e.preventDefault();
+            
+            const block = e.currentTarget;
+            const id = block.dataset.id;
+            const event = events.find(ev => ev.id === id);
+            if (!event) return;
+            
+            hasDragged = false;
+            draggingEvent = event;
+            const rect = block.getBoundingClientRect();
+            const canvas = document.getElementById('timelineCanvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            dragOffset = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+            
+            block.classList.add('dragging');
+            
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', endDrag);
+        }
+        
+        function onDrag(e) {
+            if (!draggingEvent) return;
+            e.preventDefault();
+            
+            hasDragged = true;
+            
+            const canvas = document.getElementById('timelineCanvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            const chapterWidth = (zoom / 100) * 50;
+            
+            // 获取最小章节偏移
+            const block = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+            const minChapter = parseInt(block?.dataset.minChapter || 0);
+            
+            const x = e.clientX - canvasRect.left + canvas.scrollLeft - dragOffset.x;
+            const y = e.clientY - canvasRect.top + canvas.scrollTop - dragOffset.y;
+            
+            const newStartTime = Math.round(x / chapterWidth) + minChapter;
+            const newLayer = Math.max(0, Math.round(y / 80));
+            
+            draggingEvent.startTime = newStartTime;
+            draggingEvent.layer = newLayer;
+            
+            if (block) {
+                block.style.left = ((newStartTime - minChapter) * chapterWidth) + 'px';
+                block.style.top = (newLayer * 80) + 'px';
+            }
+        }
+        
+        function endDrag(e) {
+            if (!draggingEvent) return;
+            
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', endDrag);
+            
+            const collision = checkCollision(draggingEvent);
+            if (collision) {
+                const freeLayer = findFreeLayer(draggingEvent.startTime, draggingEvent.duration, draggingEvent.id);
+                draggingEvent.layer = freeLayer;
+            }
+            
+            const block = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+            if (block) {
+                block.classList.remove('dragging');
+            }
+            
+            draggingEvent = null;
+            render();
+        }
+        
+        function checkCollision(event) {
+            const eventEnd = event.startTime + event.duration;
+            
+            for (let other of events) {
+                if (other.id === event.id) continue;
+                
+                const otherEnd = other.startTime + other.duration;
+                const timeOverlap = !(eventEnd <= other.startTime || event.startTime >= otherEnd);
+                const layerOverlap = event.layer === other.layer;
+                
+                if (timeOverlap && layerOverlap) {
+                    return other;
+                }
+            }
+            
+            return null;
+        }
+        
+        function findFreeLayer(startTime, duration, excludeId) {
+            const eventEnd = startTime + duration;
+            
+            for (let layer = 0; layer < 20; layer++) {
+                let isFree = true;
+                
+                for (let other of events) {
+                    if (other.id === excludeId) continue;
+                    if (other.layer !== layer) continue;
+                    
+                    const otherEnd = other.startTime + other.duration;
+                    const timeOverlap = !(eventEnd <= other.startTime || startTime >= otherEnd);
+                    
+                    if (timeOverlap) {
+                        isFree = false;
+                        break;
+                    }
+                }
+                
+                if (isFree) {
+                    return layer;
+                }
+            }
+            
+            return 0;
+        }
+        
+        function startResize(e) {
+            if (!editMode) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const handle = e.target;
+            const id = handle.dataset.id;
+            const event = events.find(ev => ev.id === id);
+            if (!event) return;
+            
+            resizingEvent = event;
+            
+            document.addEventListener('mousemove', onResize);
+            document.addEventListener('mouseup', endResize);
+        }
+        
+        function onResize(e) {
+            if (!resizingEvent) return;
+            e.preventDefault();
+            
+            const canvas = document.getElementById('timelineCanvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            const dayWidth = (zoom / 100) * 50;
+            
+            const block = document.querySelector(`[data-id="${resizingEvent.id}"]`);
+            if (!block) return;
+            
+            const blockRect = block.getBoundingClientRect();
+            const blockLeft = blockRect.left - canvasRect.left + canvas.scrollLeft;
+            
+            const mouseX = e.clientX - canvasRect.left + canvas.scrollLeft;
+            const newWidth = mouseX - blockLeft;
+            const newDuration = Math.max(1, Math.round(newWidth / dayWidth));
+            
+            resizingEvent.duration = newDuration;
+            block.style.width = Math.max(newDuration * dayWidth, 80) + 'px';
+            
+            const timeDisplay = block.querySelector('.event-time');
+            if (timeDisplay) {
+                timeDisplay.textContent = `第${resizingEvent.startTime}-${resizingEvent.startTime + resizingEvent.duration}天`;
+            }
+        }
+        
+        function endResize(e) {
+            if (!resizingEvent) return;
+            
+            document.removeEventListener('mousemove', onResize);
+            document.removeEventListener('mouseup', endResize);
+            
+            resizingEvent = null;
+            render();
+        }
+        
+        function showEventDetail(id) {
+            const event = events.find(e => e.id === id);
+            if (!event) return;
+            
+            selectedEvent = event;
+            const modal = document.getElementById('eventDetailModal');
+            
+            const day = days.find(d => {
+                const min = Math.min(d.startChapter, d.endChapter);
+                const max = Math.max(d.startChapter, d.endChapter);
+                return event.startTime >= min && event.startTime <= max;
+            });
+            const dayName = day ? day.name : '未分配';
+            
+            document.getElementById('eventDetailTitle').textContent = event.title;
+            document.getElementById('eventDetailBody').innerHTML = `
+                <div class="info-box">
+                    <h3>📝 描述</h3>
+                    <p>${event.description}</p>
+                </div>
+                <div class="info-box">
+                    <h3>⏱️ 时间信息</h3>
+                    <p><strong>所属天数：</strong>${dayName}</p>
+                    <p><strong>起始：</strong>${formatChapter(event.startTime)}</p>
+                    <p><strong>持续：</strong>${event.duration}章</p>
+                    <p><strong>结束：</strong>${formatChapter(event.startTime + event.duration)}</p>
+                    <p><strong>所在行位置：</strong>第${event.layer}行</p>
+                </div>
+                ${event.tags && event.tags.length > 0 ? `
+                    <div class="info-box">
+                        <h3>🏷️ 标签</h3>
+                        <div class="tag-list">
+                            ${event.tags.map(tag => `<span class="tag-item">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            
+            const deleteBtn = document.getElementById('deleteEventBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = editMode ? 'block' : 'none';
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeEventDetail() {
+            document.getElementById('eventDetailModal').classList.remove('show');
+            selectedEvent = null;
+        }
+        
+        function showAddEventForm() {
+            editingEvent = null;
+            currentTags = [];
+            document.getElementById('eventFormTitle').textContent = '➕ 添加事件';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventTagsList').innerHTML = '';
+            document.getElementById('eventFormModal').classList.add('show');
+            updateDayHint();
+        }
+        
+        function editEvent() {
+            if (!selectedEvent) return;
+            editingEvent = selectedEvent;
+            currentTags = [...(selectedEvent.tags || [])];
+            
+            document.getElementById('eventFormTitle').textContent = '✏️ 编辑事件';
+            document.getElementById('eventTitle').value = selectedEvent.title;
+            document.getElementById('eventDescription').value = selectedEvent.description;
+            document.getElementById('eventStartTime').value = selectedEvent.startTime;
+            document.getElementById('eventDuration').value = selectedEvent.duration;
+            document.getElementById('eventLayer').value = selectedEvent.layer;
+            
+            // 设置颜色选择器
+            const hexColor = rgbToHex(selectedEvent.color || 'rgb(59, 130, 246)');
+            const colorInput = document.getElementById('eventColor');
+            const colorPreview = document.getElementById('colorPreview');
+            if (colorInput) {
+                colorInput.value = hexColor;
+                colorPreview.style.background = hexColor;
+                colorPreview.textContent = hexColor.toUpperCase();
+            }
+            
+            
+            renderTagsList();
+            closeEventDetail();
+            document.getElementById('eventFormModal').classList.add('show');
+            updateDayHint();
+        }
+        
+        function closeEventForm() {
+            document.getElementById('eventFormModal').classList.remove('show');
+            editingEvent = null;
+            currentTags = [];
+        }
+        
+        function addTag() {
+            const input = document.getElementById('eventTagInput');
+            const tag = input.value.trim();
+            if (!tag) return;
+            
+            const formattedTag = tag.startsWith('#') ? tag : '#' + tag;
+            
+            // 添加到全局标签库
+            globalTags.add(formattedTag);
+            if (!currentTags.includes(formattedTag)) {
+                currentTags.push(formattedTag);
+                renderTagsList();
+            }
+            input.value = '';
+        }
+        
+        function removeTag(tag) {
+            currentTags = currentTags.filter(t => t !== tag);
+            renderTagsList();
+        }
+        
+        function renderTagsList() {
+            const container = document.getElementById('eventTagsList');
+            container.innerHTML = currentTags.map(tag => `
+                <span class="tag-item">
+                    ${tag}
+                    <button class="tag-remove" onclick="removeTag('${tag}')">×</button>
+                </span>
+            `).join('');
+        }
+        
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+            const startTime = parseInt(document.getElementById('eventStartTime').value);
+            const duration = parseInt(document.getElementById('eventDuration').value) || 1;
+            const layer = parseInt(document.getElementById('eventLayer').value) || 0;
+            
+            // 获取颜色
+            const colorHex = document.getElementById('eventColor').value;
+            const color = hexToRgb(colorHex);
+            
+            if (!title) {
+                alert('请输入事件标题');
+                return;
+            }
+            
+            if (isNaN(startTime)) {
+                alert('请输入有效的起始章节');
+                return;
+            }
+            
+            const eventData = {
+                title,
+                description,
+                startTime,
+                duration,
+                layer,
+                color: color,
+                tags: currentTags
+            };
+            
+            if (editingEvent) {
+                Object.assign(editingEvent, eventData);
+                alert('✅ 事件编辑成功！');
+            } else {
+                const maxId = Math.max(...events.map(e => parseInt(e.id.slice(1))), 0);
+                eventData.id = 't' + (maxId + 1);
+                events.push(eventData);
+                alert('✅ 事件添加成功！');
+            }
+            
+            closeEventForm();
+            render();
+        }
+        
+        function deleteEvent() {
+            if (!selectedEvent) return;
+            if (!confirm('确定删除此事件吗？')) return;
+            
+            events = events.filter(e => e.id !== selectedEvent.id);
+            closeEventDetail();
+            render();
+            alert('✅ 事件删除成功！');
+        }
+        
+        function exportData() {
+            const data = {
+                events: events,
+                days: days,
+                exportTime: new Date().toLocaleString('zh-CN')
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `故事大纲_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ 导出成功！');
+        }
+        
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.events) events = data.events;
+                    if (data.days) days = data.days;
+                    // 兼容旧格式
+                    if (data.chapters && !data.days) {
+                        days = data.chapters.map(c => ({
+                            id: c.id,
+                            name: c.name,
+                            startChapter: c.startDay,
+                            endChapter: c.endDay
+                        }));
+                    }
+                    render();
+                    alert('✅ 导入成功！');
+                } catch (err) {
+                    alert('❌ 导入失败：文件格式错误');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        function updateDayHint() {
+            const startChapter = parseInt(document.getElementById('eventStartTime').value);
+            if (isNaN(startChapter)) {
+                document.getElementById('chapterHint').textContent = '请输入有效的章节号';
+                return;
+            }
+            
+            const day = days.find(d => {
+                const min = Math.min(d.startChapter, d.endChapter);
+                const max = Math.max(d.startChapter, d.endChapter);
+                return startChapter >= min && startChapter <= max;
+            });
+            const dayName = day ? day.name : '未分配到任何天数';
+            document.getElementById('chapterHint').textContent = `当前将属于：${dayName}`;
+        }
+        
+        function showDayManager() {
+            const modal = document.getElementById('chapterManagerModal');
+            renderDayList();
+            modal.classList.add('show');
+        }
+        
+        function closeDayManager() {
+            document.getElementById('chapterManagerModal').classList.remove('show');
+        }
+        
+        function renderDayList() {
+            const container = document.getElementById('chapterList');
+            container.innerHTML = days.map(day => {
+                const chapterCount = Math.abs(day.endChapter - day.startChapter) + 1;
+                return `
+                <div class="chapter-item" id="chapter-${day.id}">
+                    <div class="chapter-item-view">
+                        <div class="chapter-info">
+                            <h4>${day.name}</h4>
+                            <p>${formatChapterRange(day.startChapter, day.endChapter)}（共${chapterCount}章）</p>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary btn-sm" onclick="editDay(${day.id})">✏️ 编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteDay(${day.id})">🗑️ 删除</button>
+                        </div>
+                    </div>
+                    <div class="chapter-item-edit">
+                        <div class="form-group">
+                            <label class="form-label">天数名称</label>
+                            <input type="text" class="form-input" id="editChapterName-${day.id}" value="${day.name}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">起始章节</label>
+                                <input type="number" class="form-input" id="editChapterStart-${day.id}" value="${day.startChapter}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">结束章节</label>
+                                <input type="number" class="form-input" id="editChapterEnd-${day.id}" value="${day.endChapter}">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-sm" onclick="cancelEditDay(${day.id})">❌ 取消</button>
+                            <button class="btn btn-primary btn-sm" onclick="saveDay(${day.id})">💾 保存</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+        
+        function editDay(id) {
+            const item = document.getElementById(`chapter-${id}`);
+            if (item) {
+                item.classList.add('editing');
+            }
+        }
+        
+        function cancelEditDay(id) {
+            const item = document.getElementById(`chapter-${id}`);
+            if (item) {
+                item.classList.remove('editing');
+            }
+        }
+        
+        function saveDay(id) {
+            const name = document.getElementById(`editChapterName-${id}`).value.trim();
+            const startChapter = parseInt(document.getElementById(`editChapterStart-${id}`).value);
+            const endChapter = parseInt(document.getElementById(`editChapterEnd-${id}`).value);
+            
+            if (!name) {
+                alert('❌ 请输入天数名称');
+                return;
+            }
+            
+            if (isNaN(startChapter) || isNaN(endChapter)) {
+                alert('❌ 请输入有效的章节号');
+                return;
+            }
+            
+            if (endChapter <= startChapter) {
+                alert(`❌ 结束章节必须大于起始章节！\n\n当前设置：${formatChapter(startChapter)} - ${formatChapter(endChapter)}\n\n请修改为：结束章节 > 起始章节\n例如：${formatChapter(startChapter)} - ${formatChapter(startChapter + 10)}`);
+                return;
+            }
+            
+            // 检查章节范围重叠
+            const overlapCheck = checkChapterOverlap(startChapter, endChapter, id);
+            if (overlapCheck.overlap) {
+                alert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
+                      `${overlapCheck.conflictDay.name}: ${formatChapterRange(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter)}\n` +
+                      `当前设置: ${formatChapterRange(startChapter, endChapter)}\n\n` +
+                      `请调整章节范围，避免重叠。`);
+                return;
+            }
+            
+            const day = days.find(d => d.id === id);
+            if (day) {
+                day.name = name;
+                day.startChapter = startChapter;
+                day.endChapter = endChapter;
+            }
+            
+            renderDayList();
+            render();
+            alert('✅ 天数修改成功！');
+        }
+        
+        function deleteDay(id) {
+            if (!confirm('确定删除此天数吗？')) return;
+            
+            days = days.filter(d => d.id !== id);
+            renderDayList();
+            render();
+            alert('✅ 天数删除成功！');
+        }
+        
+        function addDay() {
+            const name = document.getElementById('newChapterName').value.trim();
+            const startChapter = parseInt(document.getElementById('newChapterStart').value) || 0;
+            const endChapter = parseInt(document.getElementById('newChapterEnd').value) || 0;
+            
+            if (!name) {
+                alert('请输入天数名称');
+                return;
+            }
+            
+            // 检查章节范围重叠
+            const overlapCheck = checkChapterOverlap(startChapter, endChapter);
+            if (overlapCheck.overlap) {
+                alert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
+                      `${overlapCheck.conflictDay.name}: ${formatChapterRange(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter)}\n` +
+                      `当前设置: ${formatChapterRange(startChapter, endChapter)}\n\n` +
+                      `请调整章节范围，避免重叠。例如：\n` +
+                      `• 在前面：${formatChapter(Math.min(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter) - 10)}-${formatChapter(Math.min(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter) - 1)}\n` +
+                      `• 在后面：${formatChapter(Math.max(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter) + 1)}-${formatChapter(Math.max(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter) + 10)}`);
+                return;
+            }
+            
+            const maxId = Math.max(...days.map(d => d.id), 0);
+            days.push({
+                id: maxId + 1,
+                name,
+                startChapter,
+                endChapter
+            });
+            
+            document.getElementById('newChapterName').value = '';
+            document.getElementById('newChapterStart').value = '1';
+            document.getElementById('newChapterEnd').value = '10';
+            
+            renderDayList();
+            render();
+            alert('✅ 天数添加成功！');
+        }
+        
+        function showTagManager() {
+            const modal = document.getElementById('tagManagerModal');
+            renderTagManager();
+            modal.classList.add('show');
+        }
+        
+        function closeTagManager() {
+            document.getElementById('tagManagerModal').classList.remove('show');
+        }
+        
+        function renderTagManager() {
+            const tagMap = new Map();
+            events.forEach(event => {
+                if (event.tags) {
+                    event.tags.forEach(tag => {
+                        if (!tagMap.has(tag)) {
+                            tagMap.set(tag, []);
+                        }
+                        tagMap.get(tag).push(event);
+                    });
+                }
+            });
+            
+            // 合并全局标签库中的标签
+            globalTags.forEach(tag => {
+                if (!tagMap.has(tag)) {
+                    tagMap.set(tag, []);
+                }
+            });
+            
+            const tags = Array.from(tagMap.entries()).sort((a, b) => b[1].length - a[1].length);
+            
+            const container = document.getElementById('tagManagerBody');
+            
+            if (tags.length === 0) {
+                container.innerHTML = '<div class="info-box"><p>暂无标签，请先创建标签</p></div>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p class="hint">共有 ${tags.length} 个标签，点击标签查看使用该标签的事件</p>
+                </div>
+                ${tags.map(([tag, events]) => `
+                    <div class="tag-stat-item">
+                        <div class="tag-stat-header">
+                            <span class="tag-stat-name">${tag}</span>
+                            <span class="tag-stat-count">${events.length} 个事件</span>
+                        </div>
+                        ${events.length > 0 ? `
+                            <div class="tag-stat-events">
+                                ${events.map(e => e.title).join('、')}
+                            </div>
+                        ` : '<div class="tag-stat-events" style="font-style: italic; color: #9ca3af;">未使用</div>'}
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
