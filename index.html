@@ -102,12 +102,13 @@
         .event-block.editable {
             cursor: grab;
         }
-        .event-block:hover { transform: scaleY(1.02); z-index: 5; }
+        .event-block:hover { transform: scaleY(1.05); z-index: 5; }
         .event-block.dragging {
             cursor: grabbing;
-            opacity: 0.8;
+            opacity: 1.0;  /* 完全不透明，保持原样 */
             z-index: 100;
-            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* 添加阴影表示正在拖动 */
+            /* 不改变大小和透明度，保持原始外观 */
         }
         .event-block.selected { 
             border: 4px solid #fbbf24;
@@ -460,29 +461,23 @@
                     <div class="form-group">
                         <label class="form-label">行位置（layer）</label>
                         <input type="number" class="form-input" id="eventLayer" value="0" min="0">
-                        <div class="hint">提示：行位置决定事件的垂直位置，0在最上方（章节范围大的事件建议放在上方）                    
-                    <div class="form-group">
-                        <label class="form-label">事件颜色</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" class="form-input" id="eventColor" value="#3b82f6" style="width: 80px; height: 40px; cursor: pointer;">
-                            <span id="colorPreview" style="flex: 1; padding: 10px; border-radius: 6px; background: #3b82f6; color: white; text-align: center; font-weight: bold;">颜色预览</span>
-                        </div>
-                        <div class="hint">选择此事件在时间线上显示的颜色</div>
-                    </div>
-</div>
+                        <div class="hint">提示：行位置决定事件的垂直位置，0在最上方（章节范围大的事件建议放在上方）</div>
                     </div>
                     
+
                     <div class="form-group">
                         <label class="form-label">标签</label>
                         <div class="tag-list" id="eventTagsList"></div>
                         <div class="tag-input-group">
                             <input type="text" class="form-input" id="eventTagInput" placeholder="输入标签，按回车添加">
                             <button type="button" class="btn btn-primary btn-sm" onclick="addTag()">添加</button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="showTagSelector()">📋 选择</button>
                         </div>
-                        <div id="tagSelectorDropdown" style="display: none; margin-top: 10px; max-height: 200px; overflow-y: auto; border: 2px solid #e5e7eb; border-radius: 6px; padding: 10px; background: white;">
-                            <div style="font-weight: bold; margin-bottom: 8px; color: #6b7280; font-size: 12px;">点击标签添加到事件</div>
-                            <div id="availableTagsList"></div>
+                        
+                        <div style="margin-top: 12px;">
+                            <label style="font-size: 13px; color: #6b7280; margin-bottom: 6px; display: block;">💡 快速选择标签：</label>
+                            <div id="availableTagsList" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 40px;">
+                                <!-- 可选标签列表 -->
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -551,11 +546,19 @@
             <div class="modal-body">
                 <div style="border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; padding-bottom: 20px;">
                     <h3 style="font-weight: bold; margin-bottom: 15px; color: #111827;">创建新标签</h3>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
                         <input type="text" class="form-input" id="newTagInput" placeholder="输入新标签名称（自动添加#）" style="flex: 1;">
                         <button class="btn btn-success" onclick="createNewTag()">➕ 创建标签</button>
                     </div>
-                    <div class="hint" style="margin-top: 8px;">创建的标签会自动添加到标签库中</div>
+                    
+                    <div style="margin-top: 12px;">
+                        <label style="font-weight: bold; display: block; margin-bottom: 8px;">选择要添加此标签的事件：</label>
+                        <div id="eventCheckboxList" style="max-height: 200px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+                            <!-- 事件复选框列表 -->
+                        </div>
+                    </div>
+                    
+                    <div class="hint" style="margin-top: 8px;">勾选事件后，创建的标签会自动添加到这些事件上</div>
                 </div>
                 
                 <div id="tagManagerBody"></div>
@@ -566,6 +569,7 @@
         </div>
     </div>
 
+
     <script>
         let editMode = false;
         let zoom = 100;
@@ -575,19 +579,19 @@
         let draggingEvent = null;
         let dragOffset = { x: 0, y: 0 };
         let hasDragged = false;
+        let originalLayer = null; // 记录拖动前的原始层
         let resizingEvent = null;
-        
-        // 全局标签库
-        let globalTags = new Set();
+        let filteredTag = null; // 当前筛选的标签
+        let globalTagLibrary = new Set(); // 全局标签库，包含所有创建过的标签
         
         let events = [
-            { id: 't1', title: '贯穿全文', description: '整个故事的核心线，贯穿全文',
+            { id: 't1', title: '周明瑞成为诡秘之主', description: '整个故事的核心线，贯穿全文',
               startTime: 1, duration: 100, layer: 0, color: 'rgb(147, 51, 234)', tags: ['#全局', '#主线'] },
             { id: 't2', title: '穿越觉醒', description: '周明瑞穿越到500地球，获得系统',
               startTime: 1, duration: 2, layer: 1, color: 'rgb(59, 130, 246)', tags: ['#开局', '#穿越', '#廷根'] },
-            { id: 't3', title: '事件1', description: '通过测试，成为值夜者',
+            { id: 't3', title: '加入值夜者', description: '通过测试，成为值夜者',
               startTime: 6, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#值夜者', '#廷根'] },
-            { id: 't4', title: '事件2', description: '在灰雾之上获得三件套',
+            { id: 't4', title: '三件套获取', description: '在灰雾之上获得三件套',
               startTime: 4, duration: 2, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#三件套', '#唯一性', '#灰雾'] },
             { id: 't5', title: '前世回忆', description: '周明瑞穿越前的记忆片段',
               startTime: -3, duration: 3, layer: 1, color: 'rgb(107, 114, 128)', tags: ['#回忆', '#前世'] }
@@ -639,116 +643,23 @@
             return { overlap: false };
         }
         
-        const defaultEventColor = 'rgb(59, 130, 246)';
+
+        // 初始化全局标签库
+        function initGlobalTags() {
+            events.forEach(event => {
+                if (event.tags) {
+                    event.tags.forEach(tag => globalTagLibrary.add(tag));
+                }
+            });
+        }
         
         function init() {
-            initializeGlobalTags();
+            initGlobalTags(); // 初始化全局标签库
             updateZoom();
             render();
             setupEventListeners();
         }
         
-
-        // 初始化全局标签库
-        function initializeGlobalTags() {
-            events.forEach(event => {
-                if (event.tags) {
-                    event.tags.forEach(tag => globalTags.add(tag));
-                }
-            });
-        }
-        
-        // 颜色选择器事件监听
-        function setupColorPicker() {
-            const colorInput = document.getElementById('eventColor');
-            const colorPreview = document.getElementById('colorPreview');
-            
-            if (colorInput) {
-                colorInput.addEventListener('input', (e) => {
-                    const color = e.target.value;
-                    colorPreview.style.background = color;
-                    colorPreview.textContent = color.toUpperCase();
-                });
-            }
-        }
-        
-        // 创建新标签
-        function createNewTag() {
-            const input = document.getElementById('newTagInput');
-            let tag = input.value.trim();
-            
-            if (!tag) {
-                alert('请输入标签名称');
-                return;
-            }
-            
-            // 自动添加#号
-            if (!tag.startsWith('#')) {
-                tag = '#' + tag;
-            }
-            
-            globalTags.add(tag);
-            input.value = '';
-            
-            alert(`✅ 标签 "${tag}" 已创建！`);
-            renderTagManager();
-        }
-        
-        // 显示标签选择器
-        function showTagSelector() {
-            const dropdown = document.getElementById('tagSelectorDropdown');
-            const tagsList = document.getElementById('availableTagsList');
-            
-            if (dropdown.style.display === 'none') {
-                // 渲染可用标签
-                const availableTags = Array.from(globalTags).filter(tag => !currentTags.includes(tag));
-                
-                if (availableTags.length === 0) {
-                    tagsList.innerHTML = '<div style="color: #6b7280; font-style: italic;">暂无可选标签</div>';
-                } else {
-                    tagsList.innerHTML = availableTags.map(tag => `
-                        <span class="tag-item" style="cursor: pointer; margin: 4px;" onclick="selectTagFromList('${tag}')">
-                            ${tag}
-                        </span>
-                    `).join('');
-                }
-                
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
-        }
-        
-        // 从列表选择标签
-        function selectTagFromList(tag) {
-            if (!currentTags.includes(tag)) {
-                currentTags.push(tag);
-                renderTagsList();
-                showTagSelector(); // 刷新列表
-            }
-        }
-        
-        // RGB转十六进制
-        function rgbToHex(rgb) {
-            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-            if (!match) return '#3b82f6';
-            
-            const hex = (x) => {
-                const h = parseInt(x).toString(16);
-                return h.length === 1 ? '0' + h : h;
-            };
-            
-            return '#' + hex(match[1]) + hex(match[2]) + hex(match[3]);
-        }
-        
-        // 十六进制转RGB
-        function hexToRgb(hex) {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            return result ? 
-                `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})` :
-                'rgb(59, 130, 246)';
-        }
-
         function setupEventListeners() {
             document.getElementById('eventTagInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -756,8 +667,6 @@
                     addTag();
                 }
             });
-            
-            setupColorPicker();
         }
         
         function toggleEditMode() {
@@ -817,7 +726,11 @@
             const maxChapter = Math.max(...allChapters, 100);
             const timelineWidth = (maxChapter - minChapter) * chapterWidth;
             
-            const maxLayer = Math.max(...events.map(e => e.layer), 5);
+            // 使用筛选后的事件计算maxLayer
+            const displayEvents = filteredTag 
+                ? events.filter(e => e.tags && e.tags.includes(filteredTag))
+                : events;
+            const maxLayer = Math.max(...displayEvents.map(e => e.layer), 5);
             
             // Render header - 显示天数
             const header = document.getElementById('timelineHeader');
@@ -841,7 +754,8 @@
             const grid = document.getElementById('timelineGrid');
             grid.style.minWidth = timelineWidth + 'px';
             grid.style.minHeight = (maxLayer + 1) * 80 + 100 + 'px';
-            grid.innerHTML = events.map(event => {
+            // 筛选事件
+            grid.innerHTML = displayEvents.map(event => {
                 const left = (event.startTime - minChapter) * chapterWidth;
                 const width = Math.max(event.duration * chapterWidth, 80);
                 const top = event.layer * 80;
@@ -906,6 +820,7 @@
             
             hasDragged = false;
             draggingEvent = event;
+            originalLayer = event.layer; // 记录原始层
             const rect = block.getBoundingClientRect();
             const canvas = document.getElementById('timelineCanvas');
             const canvasRect = canvas.getBoundingClientRect();
@@ -950,16 +865,77 @@
             }
         }
         
+
+        // 交换两个层的事件
+        function swapLayers(targetLayer, sourceLayer, movingEvent) {
+            console.log(`交换层 ${sourceLayer} 和 ${targetLayer}`);
+            
+            const movingEventEnd = movingEvent.startTime + movingEvent.duration;
+            
+            // 找到目标层中与拖动事件时间重叠的所有事件
+            const overlappingEvents = events.filter(e => {
+                if (e.layer !== targetLayer || e.id === movingEvent.id) return false;
+                
+                const eventEnd = e.startTime + e.duration;
+                // 检查时间是否重叠
+                const timeOverlap = !(movingEventEnd <= e.startTime || movingEvent.startTime >= eventEnd);
+                return timeOverlap;
+            });
+            
+            console.log(`目标层 ${targetLayer} 有 ${overlappingEvents.length} 个重叠事件`);
+            
+            if (overlappingEvents.length === 0) {
+                console.log('没有重叠事件，不需要交换');
+                return;
+            }
+            
+            // 将重叠的事件移动到源层
+            overlappingEvents.forEach(event => {
+                event.layer = sourceLayer;
+                console.log(`✅ 交换: "${event.title}" 从层 ${targetLayer} 移到层 ${sourceLayer}`);
+            });
+            
+            // 检查交换后是否有碰撞，如果有就自动调整层
+            overlappingEvents.forEach(event => {
+                const collision = checkCollision(event);
+                if (collision) {
+                    const freeLayer = findFreeLayer(event.startTime, event.duration, event.id);
+                    console.log(`⚠️ "${event.title}" 在层 ${event.layer} 有碰撞，移到层 ${freeLayer}`);
+                    event.layer = freeLayer;
+                }
+            });
+            
+            console.log(`✅ "${movingEvent.title}" 现在在层 ${targetLayer}`);
+        }
+        
         function endDrag(e) {
             if (!draggingEvent) return;
             
             document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', endDrag);
             
-            const collision = checkCollision(draggingEvent);
-            if (collision) {
-                const freeLayer = findFreeLayer(draggingEvent.startTime, draggingEvent.duration, draggingEvent.id);
-                draggingEvent.layer = freeLayer;
+            const newLayer = draggingEvent.layer;
+            
+            // 检查是否换层了
+            if (originalLayer !== null && newLayer !== originalLayer) {
+                console.log(`检测到换层：从 ${originalLayer} 到 ${newLayer}`);
+                
+                // 检查目标层是否有事件
+                const targetLayerHasEvents = events.some(e => 
+                    e.layer === newLayer && e.id !== draggingEvent.id
+                );
+                
+                if (targetLayerHasEvents) {
+                    // 执行交换
+                    swapLayers(newLayer, originalLayer, draggingEvent);
+                }
+            } else {
+                // 没有换层，检查碰撞
+                const collision = checkCollision(draggingEvent);
+                if (collision) {
+                    const freeLayer = findFreeLayer(draggingEvent.startTime, draggingEvent.duration, draggingEvent.id);
+                    draggingEvent.layer = freeLayer;
+                }
             }
             
             const block = document.querySelector(`[data-id="${draggingEvent.id}"]`);
@@ -967,6 +943,7 @@
                 block.classList.remove('dragging');
             }
             
+            originalLayer = null; // 重置
             draggingEvent = null;
             render();
         }
@@ -1142,18 +1119,9 @@
             document.getElementById('eventDuration').value = selectedEvent.duration;
             document.getElementById('eventLayer').value = selectedEvent.layer;
             
-            // 设置颜色选择器
-            const hexColor = rgbToHex(selectedEvent.color || 'rgb(59, 130, 246)');
-            const colorInput = document.getElementById('eventColor');
-            const colorPreview = document.getElementById('colorPreview');
-            if (colorInput) {
-                colorInput.value = hexColor;
-                colorPreview.style.background = hexColor;
-                colorPreview.textContent = hexColor.toUpperCase();
-            }
-            
-            
+
             renderTagsList();
+            renderAvailableTags(); // 渲染可选标签
             closeEventDetail();
             document.getElementById('eventFormModal').classList.add('show');
             updateDayHint();
@@ -1171,9 +1139,6 @@
             if (!tag) return;
             
             const formattedTag = tag.startsWith('#') ? tag : '#' + tag;
-            
-            // 添加到全局标签库
-            globalTags.add(formattedTag);
             if (!currentTags.includes(formattedTag)) {
                 currentTags.push(formattedTag);
                 renderTagsList();
@@ -1184,6 +1149,47 @@
         function removeTag(tag) {
             currentTags = currentTags.filter(t => t !== tag);
             renderTagsList();
+        }
+        
+
+        // 渲染可选标签列表
+        function renderAvailableTags() {
+            const container = document.getElementById('availableTagsList');
+            if (!container) return;
+            
+            // 获取所有可用标签
+            const allTags = Array.from(globalTagLibrary).sort();
+            
+            // 获取当前已添加的标签
+            const addedTags = new Set(currentTags);
+            
+            // 过滤出未添加的标签
+            const availableTags = allTags.filter(tag => !addedTags.has(tag));
+            
+            if (availableTags.length === 0) {
+                container.innerHTML = '<span style="color: #9ca3af; font-size: 13px; font-style: italic;">暂无可选标签</span>';
+                return;
+            }
+            
+            container.innerHTML = availableTags.map(tag => `
+                <button type="button" 
+                        class="btn btn-sm" 
+                        onclick="quickAddTag('${tag.replace(/'/g, "\\'")}')"
+                        style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 4px 12px; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='#9ca3af';"
+                        onmouseout="this.style.background='white'; this.style.borderColor='#d1d5db';">
+                    ${tag}
+                </button>
+            `).join('');
+        }
+        
+        // 快速添加标签
+        function quickAddTag(tag) {
+            if (!currentTags.includes(tag)) {
+                currentTags.push(tag);
+                renderTagsList();
+                renderAvailableTags(); // 刷新可选标签列表
+            }
         }
         
         function renderTagsList() {
@@ -1203,10 +1209,6 @@
             const duration = parseInt(document.getElementById('eventDuration').value) || 1;
             const layer = parseInt(document.getElementById('eventLayer').value) || 0;
             
-            // 获取颜色
-            const colorHex = document.getElementById('eventColor').value;
-            const color = hexToRgb(colorHex);
-            
             if (!title) {
                 alert('请输入事件标题');
                 return;
@@ -1223,9 +1225,14 @@
                 startTime,
                 duration,
                 layer,
-                color: color,
+                color: 'rgb(59, 130, 246)', // 默认蓝色
                 tags: currentTags
             };
+            
+            // 将事件的标签添加到全局标签库
+            if (currentTags && currentTags.length > 0) {
+                currentTags.forEach(tag => globalTagLibrary.add(tag));
+            }
             
             if (editingEvent) {
                 Object.assign(editingEvent, eventData);
@@ -1469,19 +1476,199 @@
         
         function showTagManager() {
             const modal = document.getElementById('tagManagerModal');
-            renderTagManager();
             modal.classList.add('show');
+            
+            // 延迟渲染，确保modal已经显示
+            setTimeout(() => {
+                renderEventCheckboxList(); // 渲染事件复选框列表
+                renderTagManager();
+            }, 50);
         }
         
         function closeTagManager() {
             document.getElementById('tagManagerModal').classList.remove('show');
         }
         
+
+        // 按标签筛选
+        function filterByTag(tag) {
+            filteredTag = tag;
+            render();
+            closeTagManager();
+            showFilterHint(tag);
+        }
+        
+        // 清除筛选
+        function clearTagFilter() {
+            filteredTag = null;
+            render();
+            hideFilterHint();
+        }
+        
+        // 显示筛选提示
+        function showFilterHint(tag) {
+            const hint = document.getElementById('timelineHint');
+            hint.innerHTML = `
+                <span>🔍 当前筛选: <strong>${tag}</strong></span>
+                <button class="btn btn-sm btn-danger" onclick="clearTagFilter()" style="padding: 6px 14px; margin-left: 10px;">
+                    ✖ 清除筛选
+                </button>
+            `;
+            hint.style.background = '#fef3c7';
+            hint.style.padding = '12px 20px';
+        }
+        
+        // 隐藏筛选提示
+        function hideFilterHint() {
+            const hint = document.getElementById('timelineHint');
+            hint.innerHTML = editMode ? 
+                '拖动事件可改变位置和章节，拖动右边缘可调整持续章节数' : 
+                '点击事件查看详情';
+            hint.style.background = '';
+            hint.style.padding = '';
+        }
+        
+
+
+
+        // 渲染事件复选框列表
+        function renderEventCheckboxList() {
+            const container = document.getElementById('eventCheckboxList');
+            if (!container) {
+                console.log('eventCheckboxList容器未找到，延迟渲染');
+                // 如果容器不存在，等待一下再渲染
+                setTimeout(renderEventCheckboxList, 100);
+                return;
+            }
+            
+            if (events.length === 0) {
+                container.innerHTML = '<p style="color: #9ca3af; font-style: italic;">暂无事件</p>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <label style="display: flex; align-items: center; padding: 8px; cursor: pointer; border-radius: 6px; transition: background 0.2s;" 
+                       onmouseover="this.style.background='#f3f4f6'" 
+                       onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" value="${event.id}" style="margin-right: 10px; width: 18px; height: 18px; cursor: pointer;">
+                    <span style="flex: 1;">${event.title}</span>
+                    <span style="color: #9ca3af; font-size: 12px;">${formatChapter(event.startTime)}</span>
+                </label>
+            `).join('');
+            console.log(`已渲染 ${events.length} 个事件到复选框列表`);
+        }
+        
+        // 创建新标签
+        function createNewTag() {
+            const input = document.getElementById('newTagInput');
+            let tag = input.value.trim();
+            
+            if (!tag) {
+                alert('❌ 请输入标签名称');
+                return;
+            }
+            
+            // 自动添加#号
+            if (!tag.startsWith('#')) {
+                tag = '#' + tag;
+            }
+            
+            // 检查标签是否已存在
+            if (globalTagLibrary.has(tag)) {
+                alert(`⚠️ 标签 "${tag}" 已存在！`);
+                return;
+            }
+            
+            // 获取选中的事件
+            const checkboxes = document.querySelectorAll('#eventCheckboxList input[type="checkbox"]:checked');
+            const selectedEventIds = Array.from(checkboxes).map(cb => cb.value);
+            
+            // 添加到全局标签库
+            globalTagLibrary.add(tag);
+            
+            // 添加标签到选中的事件
+            let addedCount = 0;
+            events.forEach(event => {
+                if (selectedEventIds.includes(event.id)) {
+                    if (!event.tags) {
+                        event.tags = [];
+                    }
+                    if (!event.tags.includes(tag)) {
+                        event.tags.push(tag);
+                        addedCount++;
+                    }
+                }
+            });
+            
+            input.value = '';
+            renderEventCheckboxList(); // 重新渲染复选框（清空选中状态）
+            renderTagManager();
+            render(); // 刷新时间线
+            
+            if (addedCount > 0) {
+                console.log(`✅ 标签 "${tag}" 已创建并添加到 ${addedCount} 个事件`);
+            } else {
+                console.log(`✅ 标签 "${tag}" 已创建`);
+            }
+        }
+        
+
+        // 处理删除标签按钮点击
+        function handleDeleteTag(button) {
+            console.log('handleDeleteTag被调用');
+            const tag = button.getAttribute('data-tag');
+            console.log('要删除的标签:', tag);
+            if (!tag) {
+                alert('错误：无法获取标签名');
+                return;
+            }
+            executeDeleteTag(tag); // 直接删除，不需要确认
+        }
+        
+        // 执行删除标签
+        function executeDeleteTag(tag) {
+            console.log('executeDeleteTag被调用，标签:', tag);
+            console.log('当前globalTagLibrary:', Array.from(globalTagLibrary));
+            console.log('当前events:', events);
+            
+            console.log('开始删除标签');
+            
+            // 从全局标签库中删除
+            globalTagLibrary.delete(tag);
+            
+            // 从所有事件中移除该标签
+            let removedCount = 0;
+            events.forEach(event => {
+                if (event.tags && event.tags.includes(tag)) {
+                    event.tags = event.tags.filter(t => t !== tag);
+                    removedCount++;
+                }
+            });
+            
+            // 如果当前正在筛选这个标签，清除筛选
+            if (filteredTag === tag) {
+                clearTagFilter();
+            }
+            
+            // 重新渲染标签管理器
+            console.log('准备重新渲染');
+            console.log('删除后globalTagLibrary:', Array.from(globalTagLibrary));
+            renderTagManager();
+            render();
+            console.log('渲染完成');
+            
+            // 不显示alert，直接删除即可
+            console.log(`✅ 已删除标签 "${tag}"，从 ${removedCount} 个事件中移除`);
+        }
+        
         function renderTagManager() {
             const tagMap = new Map();
+            
+            // 收集所有事件中使用的标签
             events.forEach(event => {
                 if (event.tags) {
                     event.tags.forEach(tag => {
+                        // 不在这里修改globalTagLibrary，避免重新添加已删除的标签
                         if (!tagMap.has(tag)) {
                             tagMap.set(tag, []);
                         }
@@ -1490,8 +1677,8 @@
                 }
             });
             
-            // 合并全局标签库中的标签
-            globalTags.forEach(tag => {
+            // 添加全局库中未使用的标签
+            globalTagLibrary.forEach(tag => {
                 if (!tagMap.has(tag)) {
                     tagMap.set(tag, []);
                 }
@@ -1502,25 +1689,28 @@
             const container = document.getElementById('tagManagerBody');
             
             if (tags.length === 0) {
-                container.innerHTML = '<div class="info-box"><p>暂无标签，请先创建标签</p></div>';
+                container.innerHTML = '<div class="info-box"><p>暂无标签</p></div>';
                 return;
             }
             
             container.innerHTML = `
                 <div style="margin-bottom: 20px;">
-                    <p class="hint">共有 ${tags.length} 个标签，点击标签查看使用该标签的事件</p>
+                    <p class="hint">共有 ${tags.length} 个标签，点击标签名称可以查看使用该标签的所有事件</p>
                 </div>
-                ${tags.map(([tag, events]) => `
+                ${tags.map(([tag, tagEvents]) => `
                     <div class="tag-stat-item">
                         <div class="tag-stat-header">
-                            <span class="tag-stat-name">${tag}</span>
-                            <span class="tag-stat-count">${events.length} 个事件</span>
-                        </div>
-                        ${events.length > 0 ? `
-                            <div class="tag-stat-events">
-                                ${events.map(e => e.title).join('、')}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="tag-stat-name" style="cursor: pointer; text-decoration: underline;" onclick="filterByTag('${tag.replace(/'/g, "\\'")}')"><strong>${tag}</strong></span>
+                                <button class="btn btn-danger btn-sm" data-tag="${tag}" onclick="handleDeleteTag(this)" style="padding: 4px 10px; font-size: 12px;">
+                                    🗑️ 删除
+                                </button>
                             </div>
-                        ` : '<div class="tag-stat-events" style="font-style: italic; color: #9ca3af;">未使用</div>'}
+                            <span class="tag-stat-count">${tagEvents.length} 个事件</span>
+                        </div>
+                        <div class="tag-stat-events">
+                            ${tagEvents.length > 0 ? tagEvents.map(e => e.title).join('、') : '<span style="font-style: italic; color: #9ca3af;">未使用</span>'}
+                        </div>
                     </div>
                 `).join('')}
             `;
