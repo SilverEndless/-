@@ -17,10 +17,20 @@
             background: linear-gradient(135deg, #ffb300 0%, #000000 100%);
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 5px;
+        }
+        @media (min-width: 768px) {
+            body {
+                padding: 8px;
+            }
+        }
+        @media (max-width: 767px) {
+            body {
+                padding: 3px;
+            }
         }
         .container { 
-            max-width: 1400px; 
+            max-width: 1200px; 
             margin: 0 auto; 
             flex: 1;
             display: flex;
@@ -32,19 +42,51 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
+            padding: 5px 0;
             color: white;
             flex-shrink: 0;
         }
-        .title { font-size: 32px; font-weight: bold; }
-        .btn-group { display: flex; gap: 10px; }
+        @media (min-width: 768px) {
+            .header {
+                margin-bottom: 15px;
+                padding: 0;
+            }
+        }
+        @media (max-width: 767px) {
+            .header {
+                margin-bottom: 5px;
+                padding: 2px 0;
+            }
+        }
+        .title { font-size: 14px; font-weight: bold; }
+        @media (min-width: 768px) {
+            .title { font-size: 20px; }
+        }
+        .btn-group { display: flex; gap: 5px; }
+        @media (min-width: 768px) {
+            .btn-group { gap: 10px; }
+        }
         .btn {
-            padding: 10px 20px;
+            padding: 5px 8px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 12px;
+        }
+        @media (min-width: 768px) {
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 767px) {
+            .btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .btn-primary { background: #3b82f6; color: white; }
@@ -64,14 +106,41 @@
         }
         .timeline-toolbar {
             background: #374151;
-            padding: 15px;
+            padding: 8px;
             display: flex;
-            gap: 15px;
+            gap: 5px;
             align-items: center;
             flex-wrap: wrap;
             flex-shrink: 0;
         }
-        .timeline-toolbar .btn { padding: 8px 16px; font-size: 14px; }
+        @media (min-width: 768px) {
+            .timeline-toolbar {
+                padding: 8px;
+                gap: 8px;
+            }
+        }
+        @media (max-width: 767px) {
+            .timeline-toolbar {
+                padding: 4px;
+                gap: 3px;
+            }
+        }
+        .timeline-toolbar .btn { 
+            padding: 4px 8px; 
+            font-size: 11px; 
+        }
+        @media (min-width: 768px) {
+            .timeline-toolbar .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 767px) {
+            .timeline-toolbar .btn {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+        }
         .timeline-toolbar span { color: white; font-weight: bold; }
         
         .timeline-canvas {
@@ -89,7 +158,7 @@
             font-weight: bold;
             text-align: center;
             border-right: 1px solid #4b5563;
-            padding: 10px;
+            padding: 8px;
         }
         .chapter-sublabel {
             color: #9ca3af;
@@ -98,28 +167,28 @@
         }
         
         .timeline-grid {
-            min-height: 400px;
+            min-height: 200px;
             position: relative;
-            padding: 20px;
+            padding: 8px;
         }        
         /* 分层区域样式 */
         .hidden-layer-area {
             position: relative;
             background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%);
-            min-height: 400px;
+            min-height: 200px;
             border-bottom: 5px solid #a78bfa;
         }
         
         .surface-layer-area {
             position: relative;
             background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%);
-            min-height: 400px;
+            min-height: 200px;
         }
         
         .layer-divider {
             position: sticky;
             top: 0;
-            height: 100px;
+            height: 50px;
             background: linear-gradient(90deg, #a855f7 0%, #8b5cf6 20%, #6366f1 40%, #3b82f6 60%, #0ea5e9 80%, #06b6d4 100%);
             display: flex;
             flex-direction: column;
@@ -138,26 +207,26 @@
         /* 上层：章节刻度 */
         .top-scale {
             position: absolute;
-            top: 5px;
+            top: 3px;
             left: 0;
             right: 0;
-            height: 20px;
+            height: 14px;
             display: flex;
             align-items: center;
-            font-size: 11px;
+            font-size: 10px;
             color: rgba(255,255,255,0.9);
         }
         
         /* 中层：天数刻度 */
         .middle-scale {
             position: absolute;
-            top: 28px;
+            top: 17px;
             left: 0;
             right: 0;
-            height: 24px;
+            height: 16px;
             display: flex;
             align-items: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             color: white;
         }
@@ -165,13 +234,13 @@
         /* 下层：章节刻度 */
         .bottom-scale {
             position: absolute;
-            bottom: 5px;
+            bottom: 3px;
             left: 0;
             right: 0;
-            height: 20px;
+            height: 14px;
             display: flex;
             align-items: center;
-            font-size: 11px;
+            font-size: 10px;
             color: rgba(255,255,255,0.9);
         }
         
@@ -189,29 +258,30 @@
         
         .day-marker {
             position: absolute;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: #fbbf24;
             white-space: nowrap;
-            letter-spacing: 0px;
+            letter-spacing: 0.5px;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 60px;
+            max-width: 80px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
         
         .layer-label {
             position: sticky;
             top: 5px;
             left: 5px;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 6px;
             font-weight: 900;
-            font-size: 16px;
+            font-size: 13px;
             z-index: 100;
             display: inline-block;
             box-shadow: 0 2px 10px rgba(0,0,0,0.6);
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         
         .hidden-layer-label {
@@ -232,23 +302,24 @@
 
         .event-block {
             position: absolute;
-            height: 70px;
+            height: 45px;
             border-radius: 8px;
-            padding: 12px;
+            padding: 6px 8px;
             cursor: pointer;
             transition: transform 0.2s;
             border: 2px solid white;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             user-select: none;
+            overflow: visible;
         }
         .event-block.editable {
             cursor: grab;
         }
-        .event-block:hover { transform: scaleY(1.05); z-index: 5; }
+        .event-block:hover { transform: scaleY(1.05); z-index: 50; }
         .event-block.dragging {
             cursor: grabbing;
             opacity: 1.0;  /* 完全不透明，保持原样 */
-            z-index: 100;
+            z-index: 1000;  /* 提高到最高层，确保在时间轴分隔线之上 */
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* 添加阴影表示正在拖动 */
             /* 不改变大小和透明度，保持原始外观 */
         }
@@ -260,9 +331,13 @@
             color: white;
             font-weight: bold;
             font-size: 14px;
+            line-height: 1.2;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            word-break: break-all;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            transition: font-size 0.1s;
         }
         .event-time {
             color: rgba(255,255,255,0.9);
@@ -270,10 +345,22 @@
             margin-top: 4px;
         }
         .event-tags {
-            display: flex;
+            display: none;
             gap: 4px;
-            margin-top: 4px;
             flex-wrap: wrap;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 6px 8px;
+            border-radius: 0 0 8px 8px;
+            z-index: 20;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-top: -2px;
+        }
+        .event-block:hover .event-tags {
+            display: flex;
         }
         .event-tag {
             background: rgba(0,0,0,0.3);
@@ -306,6 +393,114 @@
             font-weight: bold;
         }
         
+        /* 连接节点样式 */
+        .connection-node {
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fbbf24;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .connection-node:hover {
+            width: 20px;
+            height: 20px;
+            background: #f59e0b;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+        .connection-node.has-connection {
+            background: #10b981;
+            border-color: white;
+        }
+        .connection-node.has-connection:hover {
+            background: #059669;
+        }
+        .connection-node.connecting {
+            background: #ef4444;
+            animation: pulse 0.5s infinite;
+        }
+        .connection-node.long-pressing {
+            background: #dc2626;
+            width: 24px;
+            height: 24px;
+            animation: longPressPulse 1s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2); }
+        }
+        @keyframes longPressPulse {
+            0% { transform: translateY(-50%) scale(1); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+            50% { transform: translateY(-50%) scale(1.3); box-shadow: 0 4px 12px rgba(220,38,38,0.6); }
+            100% { transform: translateY(-50%) scale(1); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        }
+        
+        /* Toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1f2937;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            max-width: 400px;
+        }
+        .toast.success {
+            background: #10b981;
+        }
+        .toast.error {
+            background: #ef4444;
+        }
+        .toast.info {
+            background: #3b82f6;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        /* 连接线预览 */
+        .connection-line-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 60;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -317,7 +512,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 8px;
         }
         .modal.show { display: flex; }
         .modal-content {
@@ -330,7 +525,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
         .modal-header {
-            padding: 20px;
+            padding: 8px;
             border-bottom: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
@@ -349,9 +544,9 @@
             line-height: 32px;
         }
         .modal-close:hover { color: #111827; background: #f3f4f6; border-radius: 4px; }
-        .modal-body { padding: 20px; }
+        .modal-body { padding: 10px; }
         .modal-footer {
-            padding: 20px;
+            padding: 8px;
             border-top: 1px solid #e5e7eb;
             display: flex;
             gap: 10px;
@@ -372,7 +567,7 @@
             border-radius: 6px;
             font-size: 14px;
         }
-        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-textarea { min-height: 200px; resize: vertical; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         .info-box {
@@ -422,7 +617,7 @@
         
         .timeline-hint {
             background: #374151;
-            padding: 10px;
+            padding: 8px;
             text-align: center;
             color: #9ca3af;
             font-size: 14px;
@@ -554,7 +749,7 @@
             
             .form-input, .form-select {
                 font-size: 16px; /* 防止iOS自动缩放 */
-                padding: 12px;
+                padding: 6px 8px;
             }
             
             .tag {
@@ -564,7 +759,7 @@
             
             #tagInput, #eventTagInput {
                 font-size: 16px;
-                padding: 10px;
+                padding: 8px;
             }
             
             /* 时间线调整 */
@@ -683,41 +878,112 @@
                     rgba(14, 165, 233, 0.1) var(--day-width, 10px)
                 );
         }
-    </style>
+            
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            left: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: #1f2937;
+            z-index: 1000;
+            transition: left 0.3s;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-header {
+            padding: 8px;
+            border-bottom: 1px solid #374151;
+        }
+        .sidebar-content {
+            padding: 8px;
+        }
+        .menu-toggle {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 999;
+            background: #374151;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .menu-toggle:hover {
+            background: #4b5563;
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .sidebar-overlay.show {
+            display: block;
+        }
+        /* 隐藏原header */
+        .header {
+            display: none;
+        }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <!-- 汉堡菜单按钮 -->
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <!-- 侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
             <div class="title">📖 故事大纲管理器 v1.0</div>
-            <div class="btn-group">
-                <button class="btn btn-purple" onclick="exportData()">📥 导出</button>
-                <label class="btn btn-indigo" style="margin: 0;">
-                    📤 导入
-                    <input type="file" accept=".json" onchange="importData(event)" style="display: none;">
-                </label>
-                <button class="btn btn-primary" id="editModeBtn" onclick="toggleEditMode()">✎ 编辑</button>
-            </div>
         </div>
+        <div class="sidebar-content">
+            <button class="btn btn-purple" onclick="exportData()" style="width: 100%; margin-bottom: 10px;">
+                <span class="btn-icon">📥</span><span class="btn-text"> 导出</span>
+            </button>
+            <label class="btn btn-indigo" style="width: 100%; margin-bottom: 10px; display: block; text-align: center; cursor: pointer;">
+                <span class="btn-icon">📤</span><span class="btn-text"> 导入</span>
+                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importData(event)">
+            </label>
+            <button class="btn btn-primary" id="editModeBtn" onclick="toggleEditMode()" style="width: 100%;">
+                <span class="btn-icon">✎</span><span class="btn-text"> 编辑</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="container">
         
         <div class="timeline-container">
             <div class="timeline-toolbar">
                 <button class="btn btn-secondary btn-sm" onclick="zoomOut()">🔍−</button>
                 <input type="number" 
                        id="zoomInput" 
+                       class="zoom-input"
                        value="100" 
                        min="10" 
                        max="500" 
                        step="5"
-                       onchange="setZoom(parseInt(this.value) || 100)"
-                       style="width: 70px; padding: 4px 8px; border: 1px solid #4b5563; border-radius: 4px; background: #1f2937; color: white; text-align: center;">
-                <span style="color: white;">%</span>
+                       onchange="setZoom(parseInt(this.value) || 100)">
+                <span class="zoom-percent">%</span>
                 <button class="btn btn-secondary btn-sm" onclick="zoomIn()">🔍+</button>
                 
-                <button class="btn btn-secondary btn-sm" onclick="showDayManager()">⚙️ 天数管理</button>
-                <button class="btn btn-secondary btn-sm" onclick="showTagManager()">🏷️ 标签管理</button>
-                <button class="btn btn-secondary btn-sm" onclick="showColorCustomizer()">🎨 颜色设置</button>
+                <button class="btn btn-secondary btn-sm" onclick="showDayManager()"><span class="btn-icon">⚙️</span><span class="btn-text"> 天数管理</span></button>
+                <button class="btn btn-secondary btn-sm" onclick="showTagManager()"><span class="btn-icon">🏷️</span><span class="btn-text"> 标签管理</span></button>
+                <button class="btn btn-secondary btn-sm" onclick="showColorCustomizer()"><span class="btn-icon">🎨</span><span class="btn-text"> 颜色设置</span></button>
                 
-                <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;">➕ 添加事件</button>
+                <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;"><span class="btn-icon">➕</span><span class="btn-text"> 添加事件</span></button>
             </div>
             
             <div class="timeline-canvas" id="timelineCanvas">
@@ -823,42 +1089,47 @@
                         
                         <div style="margin-top: 12px;">
                             <label style="font-size: 13px; color: #6b7280; margin-bottom: 6px; display: block;">💡 快速选择标签：</label>
-                            <div id="availableTagsList" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 40px;">
+                            <div id="availableTagsList" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 35px;">
                                 <!-- 可选标签列表 -->
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 因果关联 -->
-                    <div class="form-group" style="border-top: 2px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
-                        <label class="form-label" style="font-size: 16px; font-weight: bold;">🔗 因果关联</label>
+                    <!-- 事件颜色 -->
+                    <div class="form-group">
+                        <label class="form-label">🎨 事件颜色（可选）</label>
                         
-                        <!-- 起因 -->
-                        <div style="margin-bottom: 16px;">
-                            <label style="font-size: 14px; color: #374151; display: block; margin-bottom: 8px;">⬅️ 起因（导致此事件发生的原因）</label>
-                            <div id="causesList" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; padding: 8px; background: #fef3c7; border-radius: 6px; margin-bottom: 8px;">
-                                <!-- 起因事件列表 -->
+                        <!-- 预设颜色快速选择 -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">⭐ 常用颜色快速选择：</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button type="button" onclick="setEventColor('#ef4444')" style="width: 40px; height: 35px; background: #ef4444; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="红色"></button>
+                                <button type="button" onclick="setEventColor('#f59e0b')" style="width: 40px; height: 35px; background: #f59e0b; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="橙色"></button>
+                                <button type="button" onclick="setEventColor('#eab308')" style="width: 40px; height: 35px; background: #eab308; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="黄色"></button>
+                                <button type="button" onclick="setEventColor('#22c55e')" style="width: 40px; height: 35px; background: #22c55e; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="绿色"></button>
+                                <button type="button" onclick="setEventColor('#06b6d4')" style="width: 40px; height: 35px; background: #06b6d4; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="青色"></button>
+                                <button type="button" onclick="setEventColor('#3b82f6')" style="width: 40px; height: 35px; background: #3b82f6; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="蓝色"></button>
+                                <button type="button" onclick="setEventColor('#8b5cf6')" style="width: 40px; height: 35px; background: #8b5cf6; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="紫色"></button>
+                                <button type="button" onclick="setEventColor('#ec4899')" style="width: 40px; height: 35px; background: #ec4899; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="粉色"></button>
+                                <button type="button" onclick="setEventColor('#f97316')" style="width: 40px; height: 35px; background: #f97316; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="深橙"></button>
+                                <button type="button" onclick="setEventColor('#84cc16')" style="width: 40px; height: 35px; background: #84cc16; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="黄绿"></button>
+                                <button type="button" onclick="setEventColor('#14b8a6')" style="width: 40px; height: 35px; background: #14b8a6; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="蓝绿"></button>
+                                <button type="button" onclick="setEventColor('#6366f1')" style="width: 40px; height: 35px; background: #6366f1; border: 2px solid #ccc; border-radius: 6px; cursor: pointer;" title="靛蓝"></button>
                             </div>
-                            <select class="form-select" id="causeSelect" onchange="addCause()" style="margin-top: 8px;">
-                                <option value="">+ 添加起因事件</option>
-                            </select>
                         </div>
                         
-                        <!-- 结果 -->
-                        <div>
-                            <label style="font-size: 14px; color: #374151; display: block; margin-bottom: 8px;">➡️ 结果（此事件导致的后果）</label>
-                            <div id="effectsList" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; padding: 8px; background: #dbeafe; border-radius: 6px; margin-bottom: 8px;">
-                                <!-- 结果事件列表 -->
+                        <!-- 自定义颜色 -->
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="color" class="form-input" id="eventColor" value="#ff0000" onclick="refreshColorPicker(this)" style="width: 60px; height: 35px; cursor: pointer;">
+                                <span style="font-size: 13px; color: #6b7280;">自定义颜色</span>
                             </div>
-                            <select class="form-select" id="effectSelect" onchange="addEffect()" style="margin-top: 8px;">
-                                <option value="">+ 添加结果事件</option>
-                            </select>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearEventColor()">清除颜色</button>
                         </div>
-                        
-                        <div class="hint" style="margin-top: 12px;">
-                            💡 提示：建立因果关系后，点击事件可以查看完整的因果链
-                        </div>
+                        <div class="hint">💡 点击上方颜色块快速选择，或使用自定义颜色选择器。留空则使用标签颜色或默认颜色。</div>
                     </div>
+                    
+                    <!-- 旧的因果关联UI已删除，现在使用causalNext系统 -->
                 </form>
             </div>
             <div class="modal-footer">
@@ -883,7 +1154,7 @@
                         自定义规则批量生成天数段
                     </div>
                     
-                    <div style="background: rgba(255,255,255,0.15); padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                    <div style="background: rgba(255,255,255,0.15); padding: 6px 8px; border-radius: 6px; margin-bottom: 12px;">
                         <div style="display: grid; gap: 10px;">
                             <div>
                                 <label style="color: white; font-size: 13px; display: block; margin-bottom: 5px;">从第几天开始：</label>
@@ -956,14 +1227,38 @@
             <div class="modal-body">
                 <div style="border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; padding-bottom: 20px;">
                     <h3 style="font-weight: bold; margin-bottom: 15px; color: #111827;">创建新标签</h3>
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                        <input type="text" class="form-input" id="newTagInput" placeholder="输入新标签名称（自动添加#）" style="flex: 1;">
-                        <button class="btn btn-success" onclick="createNewTag()">➕ 创建标签</button>
+                    <div style="margin-bottom: 12px;">
+                        <input type="text" class="form-input" id="newTagInput" placeholder="输入新标签名称（自动添加#）" style="margin-bottom: 10px;">
+                        
+                        <!-- 预设颜色快速选择 -->
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">⭐ 快速选择颜色：</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" onclick="setTagColor('#ef4444')" style="width: 32px; height: 32px; background: #ef4444; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="红色"></button>
+                                <button type="button" onclick="setTagColor('#f59e0b')" style="width: 32px; height: 32px; background: #f59e0b; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="橙色"></button>
+                                <button type="button" onclick="setTagColor('#eab308')" style="width: 32px; height: 32px; background: #eab308; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="黄色"></button>
+                                <button type="button" onclick="setTagColor('#22c55e')" style="width: 32px; height: 32px; background: #22c55e; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="绿色"></button>
+                                <button type="button" onclick="setTagColor('#06b6d4')" style="width: 32px; height: 32px; background: #06b6d4; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="青色"></button>
+                                <button type="button" onclick="setTagColor('#3b82f6')" style="width: 32px; height: 32px; background: #3b82f6; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="蓝色"></button>
+                                <button type="button" onclick="setTagColor('#8b5cf6')" style="width: 32px; height: 32px; background: #8b5cf6; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="紫色"></button>
+                                <button type="button" onclick="setTagColor('#ec4899')" style="width: 32px; height: 32px; background: #ec4899; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="粉色"></button>
+                                <button type="button" onclick="setTagColor('#f97316')" style="width: 32px; height: 32px; background: #f97316; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="深橙"></button>
+                                <button type="button" onclick="setTagColor('#84cc16')" style="width: 32px; height: 32px; background: #84cc16; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="黄绿"></button>
+                                <button type="button" onclick="setTagColor('#14b8a6')" style="width: 32px; height: 32px; background: #14b8a6; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="蓝绿"></button>
+                                <button type="button" onclick="setTagColor('#6366f1')" style="width: 32px; height: 32px; background: #6366f1; border: 2px solid #ccc; border-radius: 4px; cursor: pointer;" title="靛蓝"></button>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="color" id="newTagColor" value="#ff0000" title="自定义颜色" style="width: 50px; height: 38px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;">
+                            <span style="font-size: 13px; color: #6b7280;">或自定义</span>
+                            <button class="btn btn-success" onclick="createNewTag()">➕ 创建标签</button>
+                        </div>
                     </div>
                     
                     <div style="margin-top: 12px;">
                         <label style="font-weight: bold; display: block; margin-bottom: 8px;">选择要添加此标签的事件：</label>
-                        <div id="eventCheckboxList" style="max-height: 200px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+                        <div id="eventCheckboxList" style="max-height: 200px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 6px 8px;">
                             <!-- 事件复选框列表 -->
                         </div>
                     </div>
@@ -1010,7 +1305,7 @@
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🌌 网页背景</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="bgColor" value="#111827" onchange="updateColors()" style="width: 60px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                            <input type="color" id="bgColor" value="#111827" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                             <input type="text" id="bgImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
                         </div>
                     </div>
@@ -1019,7 +1314,7 @@
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🌑 暗层背景</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="hiddenColor" value="#1e1b4b" onchange="updateColors()" style="width: 60px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                            <input type="color" id="hiddenColor" value="#1e1b4b" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                             <input type="text" id="hiddenImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
                         </div>
                     </div>
@@ -1028,33 +1323,21 @@
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">☀️ 表层背景</label>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="surfaceColor" value="#0c4a6e" onchange="updateColors()" style="width: 60px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                            <input type="color" id="surfaceColor" value="#0c4a6e" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                             <input type="text" id="surfaceImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
                         </div>
-                    </div>
-                    
-                    <!-- 暗层事件颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🌑 暗层事件颜色</label>
-                        <input type="color" id="hiddenEventColor" value="#a855f7" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                    </div>
-                    
-                    <!-- 表层事件颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">☀️ 表层事件颜色</label>
-                        <input type="color" id="surfaceEventColor" value="#3b82f6" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <!-- 格子线颜色 -->
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📏 格子线颜色</label>
-                        <input type="color" id="gridColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <input type="color" id="gridColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <!-- 时间条背景颜色 -->
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">⏱️ 时间条背景颜色</label>
-                        <input type="color" id="dividerBgColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <input type="color" id="dividerBgColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <!-- 格子线透明度 -->
@@ -1069,19 +1352,19 @@
                     <!-- 分隔线颜色 -->
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">➖ 分隔线颜色</label>
-                        <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <!-- 章节刻度颜色 -->
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📖 章节刻度颜色</label>
-                        <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <!-- 天数刻度颜色 -->
                     <div>
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📅 天数刻度颜色</label>
-                        <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors()" style="width: 100px; height: 40px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
                     </div>
                     
                     <div style="margin-top: 10px; display: flex; gap: 10px;">
@@ -1103,6 +1386,8 @@
         let currentCauses = [];  // 当前编辑的起因
         let currentEffects = []; // 当前编辑的结果
         let draggingEvent = null;
+        let connectingFrom = null; // 正在连接的起点事件
+        let connectionPreviewSvg = null; // 连接预览SVG
         let dragOffset = { x: 0, y: 0 };
         let hasDragged = false;
         let originalLayer = null; // 记录拖动前的原始层
@@ -1110,19 +1395,39 @@
         let initialEventPos = { startTime: 0, layer: 0 }; // 记录初始事件位置
         let resizingEvent = null;
         let filteredTag = null; // 当前筛选的标签
+        let showCausalChain = false; // 是否显示因果链箭头
+        let causalChainTag = null; // 当前显示因果链的标签
         let globalTagLibrary = new Set(); // 全局标签库，包含所有创建过的标签
+        let tagColors = {}; // 标签颜色映射，格式：{tagName: colorHex}
+        
+        // 预设标签颜色（用于新标签）
+        const defaultTagColors = [
+            '#a855f7', // 紫色
+            '#3b82f6', // 蓝色
+            '#10b981', // 绿色
+            '#f59e0b', // 橙色
+            '#ef4444', // 红色
+            '#ec4899', // 粉色
+            '#8b5cf6', // 靛紫
+            '#06b6d4', // 青色
+            '#84cc16', // 青绿
+            '#f97316', // 深橙
+            '#6366f1', // 靛蓝
+            '#14b8a6'  // 蓝绿
+        ];
+        let colorIndex = 0; // 当前使用的颜色索引
         
         let events = [
             { id: 't1', title: '周明瑞成为诡秘之主', description: '整个故事的核心线，贯穿全文',
-              startTime: 1, duration: 100, layer: 0, color: 'rgb(147, 51, 234)', tags: ['#全局', '#主线'] },
+              startTime: 1, duration: 100, layer: 0, color: 'rgb(147, 51, 234)', tags: ['#全局', '#主线'], causalNext: [] },
             { id: 't2', title: '穿越觉醒', description: '周明瑞穿越到500地球，获得系统',
-              startTime: 1, duration: 2, layer: 1, color: 'rgb(59, 130, 246)', tags: ['#开局', '#穿越', '#廷根'] },
+              startTime: 1, duration: 2, layer: 1, color: 'rgb(59, 130, 246)', tags: ['#开局', '#穿越', '#廷根'], causalNext: ['t3'] },
             { id: 't3', title: '加入值夜者', description: '通过测试，成为值夜者',
-              startTime: 6, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#值夜者', '#廷根'] },
+              startTime: 6, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#值夜者', '#廷根'], causalNext: ['t4'] },
             { id: 't4', title: '三件套获取', description: '在灰雾之上获得三件套',
-              startTime: 4, duration: 2, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#三件套', '#唯一性', '#灰雾'] },
+              startTime: 4, duration: 2, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#三件套', '#唯一性', '#灰雾'], causalNext: [] },
             { id: 't5', title: '前世回忆', description: '周明瑞穿越前的记忆片段',
-              startTime: -3, duration: 3, layer: 1, color: 'rgb(107, 114, 128)', tags: ['#回忆', '#前世'] }
+              startTime: -3, duration: 3, layer: 1, color: 'rgb(107, 114, 128)', tags: ['#回忆', '#前世'], causalNext: [] }
         ];
         
         let days = [
@@ -1133,6 +1438,13 @@
         ];
         
         // 章节号格式化函数
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
         function formatChapter(num) {
             if (num < 0) {
                 return `序${-num}`;  // -5 显示为 "序5"
@@ -1144,7 +1456,12 @@
         }
         
         // 章节范围格式化
+
         function formatChapterRange(start, end) {
+            // 如果起始和结束相同，只显示一章
+            if (start === end) {
+                return `${formatChapter(start)}`;
+            }
             return `${formatChapter(start)}-${formatChapter(end)}`;
         }
         
@@ -1176,12 +1493,20 @@
         function initGlobalTags() {
             events.forEach(event => {
                 if (event.tags) {
-                    event.tags.forEach(tag => globalTagLibrary.add(tag));
+                    event.tags.forEach(tag => {
+                        globalTagLibrary.add(tag);
+                        ensureTagHasColor(tag);
+                    });
                 }
             });
         }
         
         function init() {
+            // 初始化颜色选择器
+            const eventColorInput = document.getElementById('eventColor');
+            if (eventColorInput) {
+                eventColorInput.value = '#ff0000';
+            }
             initGlobalTags(); // 初始化全局标签库
             updateZoom();
             render();
@@ -1212,12 +1537,18 @@
                 btn.textContent = '✓ 编辑中';
                 btn.className = 'btn btn-success';
                 addBtn.style.display = 'block';
-                hint.textContent = '拖动事件可改变位置和章节，拖动右边缘可调整持续章节数';
+                // 如果有过滤标签，保持显示过滤提示
+                if (!filteredTag) {
+                    hint.textContent = '拖动事件可改变位置和章节，拖动右边缘可调整持续章节数';
+                }
             } else {
                 btn.textContent = '✎ 编辑';
                 btn.className = 'btn btn-primary';
                 addBtn.style.display = 'none';
-                hint.textContent = '点击事件查看详情';
+                // 如果有过滤标签，保持显示过滤提示
+                if (!filteredTag) {
+                    hint.textContent = '点击事件查看详情';
+                }
             }
             
             render();
@@ -1243,8 +1574,107 @@
             render();
         }
         
+        function renderCausalChainArrows() {
+            // 移除旧的箭头
+            const oldSvg = document.getElementById('causalChainSvg');
+            if (oldSvg) {
+                oldSvg.remove();
+            }
+            
+            // 获取所有带有该标签的事件
+            const taggedEvents = events.filter(e => e.tags && e.tags.includes(causalChainTag));
+            if (taggedEvents.length === 0) return;
+            
+            // 创建SVG容器
+            const timeline = document.getElementById('timelineGrid');
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.id = 'causalChainSvg';
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '50';
+            
+            // 定义箭头标记
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('markerWidth', '10');
+            marker.setAttribute('markerHeight', '10');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '3');
+            marker.setAttribute('orient', 'auto');
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', '0 0, 10 3, 0 6');
+            polygon.setAttribute('fill', '#fbbf24');
+            marker.appendChild(polygon);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+            
+            // 计算章节宽度
+            const minChapter = Math.min(...events.map(e => e.startTime));
+            const maxChapter = Math.max(...events.map(e => e.startTime + e.duration));
+            const totalChapters = maxChapter - minChapter;
+            const chapterWidth = (zoom / 100) * 50;
+            
+            // 为每个事件绘制箭头到它的causalNext
+            taggedEvents.forEach(event => {
+                if (!event.causalNext || event.causalNext.length === 0) return;
+                
+                // 获取起点事件的位置
+                const startBlock = document.querySelector(`[data-id="${event.id}"]`);
+                if (!startBlock) return;
+                
+                event.causalNext.forEach(nextId => {
+                    const nextEvent = events.find(e => e.id === nextId);
+                    if (!nextEvent) return;
+                    
+                    // 检查目标事件是否也有该标签
+                    if (!nextEvent.tags || !nextEvent.tags.includes(causalChainTag)) return;
+                    
+                    const endBlock = document.querySelector(`[data-id="${nextId}"]`);
+                    if (!endBlock) return;
+                    
+                    // 计算箭头起点和终点
+                    const startRect = startBlock.getBoundingClientRect();
+                    const endRect = endBlock.getBoundingClientRect();
+                    const timelineRect = timeline.getBoundingClientRect();
+                    
+                    const startX = startRect.right - timelineRect.left;
+                    const startY = startRect.top + startRect.height / 2 - timelineRect.top;
+                    const endX = endRect.left - timelineRect.left;
+                    const endY = endRect.top + endRect.height / 2 - timelineRect.top;
+                    
+                    // 绘制曲线箭头
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const controlX = (startX + endX) / 2;
+                    const controlY = (startY + endY) / 2 - 30;
+                    const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+                    path.setAttribute('d', d);
+                    path.setAttribute('stroke', '#fbbf24');
+                    path.setAttribute('stroke-width', '3');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    svg.appendChild(path);
+                });
+            });
+            
+            timeline.appendChild(svg);
+        }
+        
         function render() {
             renderTimeline();
+            
+            // 如果有过滤标签，确保显示过滤提示
+            if (filteredTag) {
+                if (showCausalChain) {
+                    showCausalChainHint(filteredTag);
+                } else {
+                    showFilterHint(filteredTag);
+                }
+            }
         }
         
         // 将hex颜色转换为rgb字符串
@@ -1360,22 +1790,36 @@
             const hiddenEvents = displayEvents.filter(e => e.eventLayer === 'hidden');
             const surfaceEvents = displayEvents.filter(e => !e.eventLayer || e.eventLayer === 'surface');
             
-            // 计算各层高度
-            const maxHiddenLayer = hiddenEvents.length > 0 ? Math.max(...hiddenEvents.map(e => e.layer), 3) : 3;
-            const maxSurfaceLayer = surfaceEvents.length > 0 ? Math.max(...surfaceEvents.map(e => e.layer), 3) : 3;
+            // 计算各层高度，限制最大层数为5，最小也是5以确保有足够空间
+            const maxHiddenLayer = hiddenEvents.length > 0 ? Math.min(5, Math.max(...hiddenEvents.map(e => e.layer), 5)) : 5;
+            const maxSurfaceLayer = surfaceEvents.length > 0 ? Math.min(5, Math.max(...surfaceEvents.map(e => e.layer), 5)) : 5;
             
-            const hiddenAreaHeight = (maxHiddenLayer + 1) * 80 + 60;
-            const surfaceAreaHeight = (maxSurfaceLayer + 1) * 80 + 60;
+            const hiddenAreaHeight = (maxHiddenLayer + 1) * 50 + 50;
+            const surfaceAreaHeight = (maxSurfaceLayer + 1) * 50 + 50;
             
             // 渲染单个事件块
             const renderEventBlock = (event, isHidden) => {
                 const left = (event.startTime - minChapter) * chapterWidth;
-                const width = Math.max(event.duration * chapterWidth, 80);
-                const top = event.layer * 80 + 45; // 留出标签空间（缩小后的标签）
+                const width = event.duration * chapterWidth; // 允许任意宽度
+                const top = event.layer * 55 + 20; // 使用55px层间距以充分利用350px高度
                 
-                const bgColor = isHidden 
-                    ? 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)'
-                    : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
+                // 颜色优先级：事件自身颜色 > 标签颜色 > 默认颜色
+                let baseColor = null;
+                
+                // 1. 优先使用事件自身颜色
+                if (event.eventColor) {
+                    baseColor = event.eventColor;
+                }
+                // 2. 其次使用标签颜色
+                else if (event.tags && event.tags.length > 0) {
+                    const firstTag = event.tags[0];
+                    baseColor = tagColors[firstTag];
+                }
+                // 3. 最后使用默认颜色
+                if (!baseColor) {
+                    baseColor = isHidden ? '#a855f7' : '#3b82f6';
+                }
+                const bgColor = `linear-gradient(135deg, ${baseColor} 0%, ${baseColor}dd 100%)`;
                 const borderColor = isHidden ? '3px solid #e9d5ff' : '3px solid #bae6fd';
                 // 支持自定义emoji，如果没有则使用默认
                 const layerIcon = event.emoji || (isHidden ? '🌑' : '☀️');
@@ -1392,15 +1836,16 @@
                             background: ${bgColor};
                             border: ${borderColor};
                          ">
-                        <div class="event-title"><span style="font-size: 14px; margin-right: 4px; opacity: 0.8;">${layerIcon}</span>${event.title}</div>
-                        <div class="event-time">${formatChapterRange(event.startTime, event.startTime + event.duration)}</div>
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-time">${formatChapterRange(event.startTime, event.startTime + event.duration - 1)}</div>
                         ${event.tags ? `
                             <div class="event-tags">
-                                ${event.tags.slice(0, 2).map(tag => `
+                                ${event.tags.map(tag => `
                                     <span class="event-tag">${tag}</span>
                                 `).join('')}
                             </div>
                         ` : ''}
+                        ${editMode ? `<div class="connection-node ${event.causalNext && event.causalNext.length > 0 ? 'has-connection' : ''}" data-id="${event.id}" title="${event.causalNext && event.causalNext.length > 0 ? '拖动创建连接 | 长按1秒删除' : '拖动创建连接 | 长按1秒删除'}"></div>` : ''}
                         <div class="resize-handle" data-id="${event.id}"></div>
                     </div>
                 `;
@@ -1493,17 +1938,17 @@
             // Add drag event listeners
             document.querySelectorAll('.event-block').forEach(block => {
                 block.addEventListener('mousedown', (e) => {
-                    if (!e.target.classList.contains('resize-handle')) {
+                    if (!e.target.classList.contains('resize-handle') && !e.target.classList.contains('connection-node')) {
                         startDrag(e);
                     }
                 });
                 block.addEventListener('touchstart', (e) => {
-                    if (!e.target.classList.contains('resize-handle')) {
+                    if (!e.target.classList.contains('resize-handle') && !e.target.classList.contains('connection-node')) {
                         startDrag(e);
                     }
                 }, { passive: false });
                 block.addEventListener('click', (e) => {
-                    if (!hasDragged && !e.target.classList.contains('resize-handle')) {
+                    if (!hasDragged && !e.target.classList.contains('resize-handle') && !e.target.classList.contains('connection-node')) {
                         showEventDetail(block.dataset.id);
                     }
                     hasDragged = false;
@@ -1516,10 +1961,280 @@
                 handle.addEventListener('touchstart', (e) => startResize(e), { passive: false });
             });
             
+            // Add connection node event listeners
+            document.querySelectorAll('.connection-node').forEach(node => {
+                node.addEventListener('mousedown', (e) => startConnection(e));
+                node.addEventListener('touchstart', (e) => startConnection(e), { passive: false });
+            });
+            
             // 更新标签背景色
             setTimeout(() => {
                 updateLabelColors();
             }, 200);
+            
+            // 渲染因果链箭头
+            if (showCausalChain && causalChainTag) {
+                renderCausalChainArrows();
+            }
+            
+            // 动态调整标题字体大小
+            setTimeout(() => {
+                adjustTitleFontSizes();
+            }, 50);
+        }
+        
+        // 动态调整标题字体大小
+        function adjustTitleFontSizes() {
+            document.querySelectorAll('.event-title').forEach(titleElement => {
+                const block = titleElement.closest('.event-block');
+                if (!block) return;
+                
+                // 从14px开始，逐步缩小到最小9px
+                let fontSize = 14;
+                const minFontSize = 9;
+                
+                // 重置为初始样式：14px + 2行换行
+                titleElement.style.fontSize = fontSize + 'px';
+                titleElement.style.display = '-webkit-box';
+                titleElement.style.webkitLineClamp = '2';
+                titleElement.style.webkitBoxOrient = 'vertical';
+                titleElement.style.overflow = 'hidden';
+                titleElement.style.textOverflow = 'ellipsis';
+                
+                // 检测2行是否放得下（用scrollHeight）
+                // 如果2行高度超出，说明内容太多，需要缩小字体
+                const maxHeight = fontSize * 1.2 * 2; // line-height * 行数
+                
+                // 如果2行放不下，逐步缩小字体
+                while (fontSize > minFontSize && titleElement.scrollHeight > maxHeight + 2) {
+                    fontSize -= 0.5;
+                    titleElement.style.fontSize = fontSize + 'px';
+                }
+                
+                // 达到最小字体后，如果还放不下，使用省略号（已经设置了textOverflow: ellipsis）
+            });
+        }
+        
+        // Toast通知函数
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+        
+        // 连接节点相关函数
+        let longPressTimer = null;
+        let isLongPressing = false;
+        
+        function startConnection(e) {
+            if (!editMode) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const node = e.target;
+            const eventId = node.dataset.id;
+            const event = events.find(ev => ev.id === eventId);
+            if (!event) return;
+            
+            isLongPressing = false;
+            let hasMoved = false;
+            
+            const startX = e.clientX || (e.touches && e.touches[0].clientX);
+            const startY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            console.log('🟡 开始长按检测...');
+            
+            // 开始长按检测（1秒）
+            longPressTimer = setTimeout(() => {
+                if (hasMoved) {
+                    console.log('❌ 已移动，取消长按');
+                    return;
+                }
+                
+                console.log('✅ 长按触发！');
+                isLongPressing = true;
+                node.classList.add('long-pressing');
+                
+                if (event.causalNext && event.causalNext.length > 0) {
+                    console.log('🗑️ 删除前 causalNext:', JSON.stringify(event.causalNext));
+                    event.causalNext = [];
+                    console.log('🗑️ 删除后 causalNext:', JSON.stringify(event.causalNext));
+                    render();
+                    console.log('🔄 已调用render()重新渲染');
+                    showToast('✅ 已删除所有连接', 'success');
+                } else {
+                    console.log('ℹ️ 该事件没有任何连接');
+                    showToast(`ℹ️ ${event.title} 没有任何连接`, 'info');
+                }
+                
+                node.classList.remove('long-pressing');
+                isLongPressing = false;
+            }, 1000);
+            
+            // 同时开始拖动准备（但要等确认不是长按）
+            const fromEvent = event;
+            
+            // 添加移动监听来检测是否开始拖动
+            const checkMove = (moveE) => {
+                if (hasMoved || isLongPressing) return;
+                
+                const currentX = moveE.clientX || (moveE.touches && moveE.touches[0].clientX);
+                const currentY = moveE.clientY || (moveE.touches && moveE.touches[0].clientY);
+                const distance = Math.sqrt(Math.pow(currentX - startX, 2) + Math.pow(currentY - startY, 2));
+                
+                if (distance > 30) {
+                    // 移动超过30px，开始拖动
+                    hasMoved = true;
+                    clearTimeout(longPressTimer);
+                    console.log('🔵 开始拖动，移动距离:', distance.toFixed(1), 'px');
+                    document.removeEventListener('mousemove', checkMove);
+                    document.removeEventListener('touchmove', checkMove);
+                    
+                    // 开始连接拖动
+                    connectingFrom = fromEvent;
+                    node.classList.add('connecting');
+                    
+                    const timeline = document.getElementById('timelineGrid');
+                    connectionPreviewSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    connectionPreviewSvg.classList.add('connection-line-preview');
+                    connectionPreviewSvg.style.position = 'absolute';
+                    connectionPreviewSvg.style.top = '0';
+                    connectionPreviewSvg.style.left = '0';
+                    connectionPreviewSvg.style.width = '100%';
+                    connectionPreviewSvg.style.height = '100%';
+                    connectionPreviewSvg.style.pointerEvents = 'none';
+                    connectionPreviewSvg.style.zIndex = '60';
+                    timeline.appendChild(connectionPreviewSvg);
+                    
+                    document.addEventListener('mousemove', onConnectionMove);
+                    document.addEventListener('mouseup', endConnection);
+                    document.addEventListener('touchmove', onConnectionMove);
+                    document.addEventListener('touchend', endConnection);
+                }
+            };
+            
+            const cleanup = (upE) => {
+                console.log('⚪ 松开，清理');
+                clearTimeout(longPressTimer);
+                document.removeEventListener('mousemove', checkMove);
+                document.removeEventListener('touchmove', checkMove);
+                document.removeEventListener('mouseup', cleanup);
+                document.removeEventListener('touchend', cleanup);
+                
+                // 如果没有移动也没有长按，取消所有操作
+                if (!hasMoved && !isLongPressing) {
+                    node.classList.remove('long-pressing');
+                }
+            };
+            
+            document.addEventListener('mousemove', checkMove);
+            document.addEventListener('touchmove', checkMove, { passive: false });
+            document.addEventListener('mouseup', cleanup);
+            document.addEventListener('touchend', cleanup);
+        }
+        
+        function onConnectionMove(e) {
+            if (!connectingFrom || !connectionPreviewSvg) return;
+            
+            const timeline = document.getElementById('timelineGrid');
+            const timelineRect = timeline.getBoundingClientRect();
+            const fromBlock = document.querySelector(`[data-id="${connectingFrom.id}"]`);
+            if (!fromBlock) return;
+            
+            const fromRect = fromBlock.getBoundingClientRect();
+            const startX = fromRect.right - timelineRect.left;
+            const startY = fromRect.top + fromRect.height / 2 - timelineRect.top;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const endX = clientX - timelineRect.left;
+            const endY = clientY - timelineRect.top;
+            
+            // 绘制预览线
+            connectionPreviewSvg.innerHTML = '';
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const controlX = (startX + endX) / 2;
+            const controlY = (startY + endY) / 2;
+            const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+            path.setAttribute('d', d);
+            path.setAttribute('stroke', '#ef4444');
+            path.setAttribute('stroke-width', '3');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-dasharray', '5,5');
+            connectionPreviewSvg.appendChild(path);
+        }
+        
+        function endConnection(e) {
+            if (!connectingFrom) return;
+            
+            // 移除connecting样式
+            document.querySelectorAll('.connection-node.connecting').forEach(node => {
+                node.classList.remove('connecting');
+            });
+            
+            // 移除预览线
+            if (connectionPreviewSvg) {
+                connectionPreviewSvg.remove();
+                connectionPreviewSvg = null;
+            }
+            
+            // 检查是否在另一个事件上松开
+            const clientX = e.touches ? e.changedTouches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.changedTouches[0].clientY : e.clientY;
+            const targetElement = document.elementFromPoint(clientX, clientY);
+            
+            if (targetElement) {
+                const targetBlock = targetElement.closest('.event-block');
+                if (targetBlock) {
+                    const toId = targetBlock.dataset.id;
+                    const toEvent = events.find(ev => ev.id === toId);
+                    
+                    if (toEvent && toEvent.id !== connectingFrom.id) {
+                        // 检查是否有共同标签
+                        const hasCommonTag = connectingFrom.tags && toEvent.tags && 
+                            connectingFrom.tags.some(tag => toEvent.tags.includes(tag));
+                        
+                        if (!hasCommonTag) {
+                            showToast(`❌ 无法连接：两个事件没有共同标签\n\n${connectingFrom.title}: ${connectingFrom.tags?.join(', ') || '无标签'}\n${toEvent.title}: ${toEvent.tags?.join(', ') || '无标签'}`, 'error', 4000);
+                        } else {
+                            // 检查是否会造成双向连接
+                            const reverseExists = toEvent.causalNext && toEvent.causalNext.includes(connectingFrom.id);
+                            if (reverseExists) {
+                                showToast(`❌ 无法连接：已存在反向连接\n\n${toEvent.title} → ${connectingFrom.title} 已存在\n不能创建 ${connectingFrom.title} → ${toEvent.title}`, 'error', 4000);
+                            } else {
+                                // 添加因果链连接
+                                if (!connectingFrom.causalNext) {
+                                    connectingFrom.causalNext = [];
+                                }
+                                if (!connectingFrom.causalNext.includes(toId)) {
+                                    connectingFrom.causalNext.push(toId);
+                                    render();
+                                    showToast(`✅ 已建立因果链：${connectingFrom.title} → ${toEvent.title}`, 'success');
+                                } else {
+                                    showToast(`⚠️ 已存在该因果链连接`, 'info');
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            connectingFrom = null;
+            
+            // 移除事件监听
+            document.removeEventListener('mousemove', onConnectionMove);
+            document.removeEventListener('mouseup', endConnection);
+            document.removeEventListener('touchmove', onConnectionMove);
+            document.removeEventListener('touchend', endConnection);
         }
         
         function startDrag(e) {
@@ -1618,19 +2333,31 @@
                 
                 let targetLayer = draggingEvent.eventLayer || 'surface';
                 
-                if (clientY < dividerRect.top) {
+                // 添加缓冲区，避免频繁切换
+                if (clientY < dividerRect.top - 20) {
+                    // 在分隔线上方20px，切换到暗层
                     targetLayer = 'hidden';
-                } else if (clientY > dividerRect.bottom) {
+                } else if (clientY > dividerRect.bottom + 20) {
+                    // 在分隔线下方20px，切换到表层
                     targetLayer = 'surface';
                 }
+                // 在分隔线附近（±20px），保持当前层
                 
-                // 如果层级改变，重新渲染
+                // 如果层级改变，立即渲染让元素移到新容器
                 if (targetLayer !== draggingEvent.eventLayer) {
+                    console.log(`切换层级: ${draggingEvent.eventLayer} → ${targetLayer}`);
                     draggingEvent.eventLayer = targetLayer;
-                    draggingEvent.layer = 0;
                     draggingEvent.startTime = newStartTime;
+                    
+                    // 立即渲染，让元素移到新容器
                     render();
-                    return;
+                    
+                    // 重新获取block引用并添加dragging样式
+                    block = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+                    if (block) {
+                        block.classList.add('dragging');
+                    }
+                    // 继续执行下面的拖动逻辑
                 }
             }
             
@@ -1641,21 +2368,32 @@
             if (draggingEvent.eventLayer === 'hidden' && hiddenArea) {
                 const rect = hiddenArea.getBoundingClientRect();
                 const relativeY = clientY - rect.top;
-                const newLayer = Math.max(0, Math.floor((relativeY - 50) / 80));
+                
+                // 直接计算layer，使用55px层间距以充分利用350px高度
+                const calculatedLayer = Math.floor((relativeY - 20) / 55);
+                const newLayer = Math.max(0, Math.min(5, calculatedLayer)); // 限制0-5层
+                
+                // 调试日志
+                if (newLayer >= 4) {
+                    console.log(`暗层拖动: relativeY=${relativeY.toFixed(0)}, calculatedLayer=${calculatedLayer}, newLayer=${newLayer}`);
+                }
                 
                 draggingEvent.startTime = newStartTime;
                 draggingEvent.layer = newLayer;
                 block.style.left = ((newStartTime - minChapter) * chapterWidth) + 'px';
-                block.style.top = (newLayer * 80 + 50) + 'px';
+                block.style.top = (newLayer * 55 + 20) + 'px';
             } else if (surfaceArea) {
                 const rect = surfaceArea.getBoundingClientRect();
                 const relativeY = clientY - rect.top;
-                const newLayer = Math.max(0, Math.floor((relativeY - 50) / 80));
+                
+                // 直接计算layer，使用55px层间距
+                const calculatedLayer = Math.floor((relativeY - 20) / 55);
+                const newLayer = Math.max(0, Math.min(5, calculatedLayer)); // 限制0-5层
                 
                 draggingEvent.startTime = newStartTime;
                 draggingEvent.layer = newLayer;
                 block.style.left = ((newStartTime - minChapter) * chapterWidth) + 'px';
-                block.style.top = (newLayer * 80 + 50) + 'px';
+                block.style.top = (newLayer * 55 + 20) + 'px';
             }
         }
         
@@ -1665,10 +2403,13 @@
             console.log(`交换层 ${sourceLayer} 和 ${targetLayer}`);
             
             const movingEventEnd = movingEvent.startTime + movingEvent.duration;
+            const movingEventLayer = movingEvent.eventLayer || 'surface';
             
-            // 找到目标层中与拖动事件时间重叠的所有事件
+            // 找到目标层中与拖动事件时间重叠的所有事件（只检查同一eventLayer）
             const overlappingEvents = events.filter(e => {
                 if (e.layer !== targetLayer || e.id === movingEvent.id) return false;
+                // 只检查同一eventLayer的事件
+                if ((e.eventLayer || 'surface') !== movingEventLayer) return false;
                 
                 const eventEnd = e.startTime + e.duration;
                 // 检查时间是否重叠
@@ -1676,7 +2417,7 @@
                 return timeOverlap;
             });
             
-            console.log(`目标层 ${targetLayer} 有 ${overlappingEvents.length} 个重叠事件`);
+            console.log(`目标层 ${targetLayer} 有 ${overlappingEvents.length} 个重叠事件（同一eventLayer）`);
             
             if (overlappingEvents.length === 0) {
                 console.log('没有重叠事件，不需要交换');
@@ -1693,7 +2434,7 @@
             overlappingEvents.forEach(event => {
                 const collision = checkCollision(event);
                 if (collision) {
-                    const freeLayer = findFreeLayer(event.startTime, event.duration, event.id);
+                    const freeLayer = findFreeLayer(event.startTime, event.duration, event.id, event.eventLayer || 'surface');
                     console.log(`⚠️ "${event.title}" 在层 ${event.layer} 有碰撞，移到层 ${freeLayer}`);
                     event.layer = freeLayer;
                 }
@@ -1704,6 +2445,8 @@
         
         function endDrag(e) {
             if (!draggingEvent) return;
+            
+            console.log(`endDrag: layer=${draggingEvent.layer}, eventLayer=${draggingEvent.eventLayer}`);
             
             document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', endDrag);
@@ -1716,10 +2459,15 @@
             if (originalLayer !== null && newLayer !== originalLayer) {
                 console.log(`检测到换层：从 ${originalLayer} 到 ${newLayer}`);
                 
-                // 检查目标层是否有事件
+                // 检查目标层是否有事件（只检查同一eventLayer）
+                const eventLayerValue = draggingEvent.eventLayer || 'surface';
                 const targetLayerHasEvents = events.some(e => 
-                    e.layer === newLayer && e.id !== draggingEvent.id
+                    e.layer === newLayer && 
+                    e.id !== draggingEvent.id &&
+                    (e.eventLayer || 'surface') === eventLayerValue
                 );
+                
+                console.log(`目标层${newLayer}有事件: ${targetLayerHasEvents}`);
                 
                 if (targetLayerHasEvents) {
                     // 执行交换
@@ -1729,8 +2477,12 @@
                 // 没有换层，检查碰撞
                 const collision = checkCollision(draggingEvent);
                 if (collision) {
-                    const freeLayer = findFreeLayer(draggingEvent.startTime, draggingEvent.duration, draggingEvent.id);
+                    console.log(`检测到碰撞: ${collision.title}`);
+                    const freeLayer = findFreeLayer(draggingEvent.startTime, draggingEvent.duration, draggingEvent.id, draggingEvent.eventLayer || 'surface');
+                    console.log(`移到空闲层: ${freeLayer}`);
                     draggingEvent.layer = freeLayer;
+                } else {
+                    console.log(`没有碰撞，保持在layer ${newLayer}`);
                 }
             }
             
@@ -1746,9 +2498,12 @@
         
         function checkCollision(event) {
             const eventEnd = event.startTime + event.duration;
+            const eventLayerValue = event.eventLayer || 'surface';
             
             for (let other of events) {
                 if (other.id === event.id) continue;
+                // 只检查同一eventLayer的事件
+                if ((other.eventLayer || 'surface') !== eventLayerValue) continue;
                 
                 const otherEnd = other.startTime + other.duration;
                 const timeOverlap = !(eventEnd <= other.startTime || event.startTime >= otherEnd);
@@ -1762,14 +2517,17 @@
             return null;
         }
         
-        function findFreeLayer(startTime, duration, excludeId) {
+        function findFreeLayer(startTime, duration, excludeId, eventLayer = 'surface') {
             const eventEnd = startTime + duration;
             
-            for (let layer = 0; layer < 20; layer++) {
+            // 只搜索0-5层
+            for (let layer = 0; layer <= 5; layer++) {
                 let isFree = true;
                 
                 for (let other of events) {
                     if (other.id === excludeId) continue;
+                    // 只检查同一eventLayer的事件
+                    if ((other.eventLayer || 'surface') !== eventLayer) continue;
                     if (other.layer !== layer) continue;
                     
                     const otherEnd = other.startTime + other.duration;
@@ -1786,7 +2544,8 @@
                 }
             }
             
-            return 0;
+            // 如果0-5层都满了，返回5（最后一层）
+            return 5;
         }
         
         function startResize(e) {
@@ -1828,11 +2587,18 @@
             const newDuration = Math.max(1, Math.round(newWidth / dayWidth));
             
             resizingEvent.duration = newDuration;
-            block.style.width = Math.max(newDuration * dayWidth, 80) + 'px';
+            // 允许最小宽度为1章，不再强制80px
+            block.style.width = (newDuration * dayWidth) + 'px';
             
             const timeDisplay = block.querySelector('.event-time');
             if (timeDisplay) {
-                timeDisplay.textContent = `第${resizingEvent.startTime}-${resizingEvent.startTime + resizingEvent.duration}天`;
+                // 显示章节范围
+                const endChapter = resizingEvent.startTime + resizingEvent.duration - 1;
+                if (resizingEvent.duration === 1) {
+                    timeDisplay.textContent = `第${resizingEvent.startTime}章`;
+                } else {
+                    timeDisplay.textContent = `第${resizingEvent.startTime}-${endChapter}章`;
+                }
             }
         }
         
@@ -1877,7 +2643,7 @@
                     <p><strong>所属天数：</strong>${dayName}</p>
                     <p><strong>起始：</strong>${formatChapter(event.startTime)}</p>
                     <p><strong>持续：</strong>${event.duration}章</p>
-                    <p><strong>结束：</strong>${formatChapter(event.startTime + event.duration)}</p>
+                    <p><strong>结束：</strong>${formatChapter(event.startTime + event.duration - 1)}</p>
                     <p><strong>所在行位置：</strong>第${event.layer}行</p>
                 </div>
                 ${event.tags && event.tags.length > 0 ? `
@@ -1890,7 +2656,7 @@
                 ` : ''}
                 ${causeEvents.length > 0 || effectEvents.length > 0 ? `
                     <div class="info-box" style="border-left: 4px solid #8b5cf6;">
-                        <h3>🔗 因果关联</h3>
+                        <h3>🔗 因果关联（旧系统）</h3>
                         ${causeEvents.length > 0 ? `
                             <div style="margin-bottom: 12px;">
                                 <p style="font-weight: bold; color: #d97706; margin-bottom: 8px;">⬅️ 起因：</p>
@@ -1913,9 +2679,6 @@
                                 `).join('')}
                             </div>
                         ` : ''}
-                        <button class="btn btn-sm" onclick="showCausalChain('${event.id}')" style="margin-top: 12px; width: 100%;">
-                            🔍 查看完整因果链
-                        </button>
                     </div>
                 ` : ''}
             `;
@@ -1930,136 +2693,7 @@
         
 
         // 显示因果链
-        function showCausalChain(eventId) {
-            const event = events.find(e => e.id === eventId);
-            if (!event) return;
-            
-            // 递归获取所有起因（向上追溯）
-            const allCauses = new Set();
-            function getCauses(id, depth = 0) {
-                if (depth > 10) return; // 防止无限循环
-                const e = events.find(ev => ev.id === id);
-                if (!e || !e.causes) return;
-                
-                e.causes.forEach(causeId => {
-                    if (!allCauses.has(causeId)) {
-                        allCauses.add(causeId);
-                        getCauses(causeId, depth + 1);
-                    }
-                });
-            }
-            getCauses(eventId);
-            
-            // 递归获取所有结果（向下追溯）
-            const allEffects = new Set();
-            function getEffects(id, depth = 0) {
-                if (depth > 10) return; // 防止无限循环
-                const e = events.find(ev => ev.id === id);
-                if (!e || !e.effects) return;
-                
-                e.effects.forEach(effectId => {
-                    if (!allEffects.has(effectId)) {
-                        allEffects.add(effectId);
-                        getEffects(effectId, depth + 1);
-                    }
-                });
-            }
-            getEffects(eventId);
-            
-            // 构建层级结构
-            const causesList = Array.from(allCauses).map(id => events.find(e => e.id === id)).filter(Boolean);
-            const effectsList = Array.from(allEffects).map(id => events.find(e => e.id === id)).filter(Boolean);
-            
-            // 按时间排序
-            causesList.sort((a, b) => a.startTime - b.startTime);
-            effectsList.sort((a, b) => a.startTime - b.startTime);
-            
-            // 渲染因果链
-            document.getElementById('causalChainBody').innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h3 style="color: #6b7280; margin-bottom: 8px;">因果链分析</h3>
-                    <p style="color: #9ca3af; font-size: 14px;">共 ${causesList.length} 个起因 → <strong style="color: #8b5cf6;">${event.title}</strong> → ${effectsList.length} 个结果</p>
-                </div>
-                
-                ${causesList.length > 0 ? `
-                    <div style="margin-bottom: 30px;">
-                        <div style="background: #fbbf24; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; font-weight: bold;">
-                            ⬅️ 起因链（${causesList.length}个事件）
-                        </div>
-                        <div style="border: 2px solid #fbbf24; border-top: none; border-radius: 0 0 8px 8px; padding: 16px;">
-                            ${causesList.map(cause => `
-                                <div style="background: #fef3c7; padding: 12px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;"
-                                     onmouseover="this.style.background='#fde68a'"
-                                     onmouseout="this.style.background='#fef3c7'"
-                                     onclick="showEventDetail('${cause.id}'); closeCausalChain();">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <strong style="color: #78350f;">${cause.title}</strong>
-                                        <span style="color: #92400e; font-size: 12px;">${formatChapter(cause.startTime)}</span>
-                                    </div>
-                                    ${cause.description ? `<p style="color: #a16207; font-size: 13px; margin-top: 6px; margin-bottom: 0;">${cause.description}</p>` : ''}
-                                    ${cause.effects && cause.effects.length > 0 ? `
-                                        <div style="margin-top: 8px; font-size: 12px; color: #92400e;">
-                                            → 导致: ${cause.effects.map(id => {
-                                                const e = events.find(ev => ev.id === id);
-                                                return e ? e.title : '';
-                                            }).filter(Boolean).join(', ')}
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                <div style="margin: 30px 0; text-align: center;">
-                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
-                        <h3 style="margin: 0 0 8px 0; font-size: 18px;">📍 当前事件</h3>
-                        <p style="margin: 0; font-size: 20px; font-weight: bold;">${event.title}</p>
-                        <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">${formatChapter(event.startTime)} · ${event.duration}章</p>
-                        ${event.description ? `<p style="margin: 12px 0 0 0; font-size: 14px; opacity: 0.95; font-style: italic;">"${event.description}"</p>` : ''}
-                    </div>
-                </div>
-                
-                ${effectsList.length > 0 ? `
-                    <div style="margin-top: 30px;">
-                        <div style="background: #3b82f6; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; font-weight: bold;">
-                            ➡️ 结果链（${effectsList.length}个事件）
-                        </div>
-                        <div style="border: 2px solid #3b82f6; border-top: none; border-radius: 0 0 8px 8px; padding: 16px;">
-                            ${effectsList.map(effect => `
-                                <div style="background: #dbeafe; padding: 12px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;"
-                                     onmouseover="this.style.background='#bfdbfe'"
-                                     onmouseout="this.style.background='#dbeafe'"
-                                     onclick="showEventDetail('${effect.id}'); closeCausalChain();">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <strong style="color: #1e40af;">${effect.title}</strong>
-                                        <span style="color: #1e3a8a; font-size: 12px;">${formatChapter(effect.startTime)}</span>
-                                    </div>
-                                    ${effect.description ? `<p style="color: #1e40af; font-size: 13px; margin-top: 6px; margin-bottom: 0;">${effect.description}</p>` : ''}
-                                    ${effect.causes && effect.causes.length > 0 ? `
-                                        <div style="margin-top: 8px; font-size: 12px; color: #1e3a8a;">
-                                            ← 起因: ${effect.causes.map(id => {
-                                                const e = events.find(ev => ev.id === id);
-                                                return e ? e.title : '';
-                                            }).filter(Boolean).join(', ')}
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                ${causesList.length === 0 && effectsList.length === 0 ? `
-                    <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                        <p style="font-size: 16px;">此事件暂无因果关联</p>
-                        <p style="font-size: 14px; margin-top: 8px;">点击"编辑"按钮可以添加起因和结果</p>
-                    </div>
-                ` : ''}
-            `;
-            
-            document.getElementById('causalChainModal').classList.add('show');
-        }
+        // 旧的showCausalChain函数已删除，现在使用filterByTag来显示因果链
         
         function closeCausalChain() {
             document.getElementById('causalChainModal').classList.remove('show');
@@ -2083,6 +2717,13 @@
             renderRelationSelects(null);
             document.getElementById('eventFormModal').classList.add('show');
             updateDayHint();
+            // 延迟设置颜色，确保表单完全显示后再设置
+            setTimeout(() => {
+                const colorInput = document.getElementById('eventColor');
+                if (!colorInput) return;  // 添加空值检查
+                colorInput.value = '#ff0000';
+                delete colorInput.dataset.cleared;
+            }, 50);
         }
         
         function editEvent() {
@@ -2100,15 +2741,27 @@
             document.getElementById('eventDuration').value = selectedEvent.duration;
             document.getElementById('eventLayer').value = selectedEvent.layer;
             
-
             renderTagsList();
             renderAvailableTags(); // 渲染可选标签
-            renderCausesList();
-            renderEffectsList();
-            renderRelationSelects(selectedEvent.id);
+            // 旧的因果关联渲染已删除
             closeEventDetail();
             document.getElementById('eventFormModal').classList.add('show');
             updateDayHint();
+            // 延迟设置颜色，确保表单完全显示后再设置
+            setTimeout(() => {
+                const eventColorInput = document.getElementById('eventColor');
+                // 添加双重空值检查
+                if (!eventColorInput) return;
+                if (!editingEvent) return;
+                
+                if (editingEvent.eventColor) {
+                    eventColorInput.value = editingEvent.eventColor;
+                    delete eventColorInput.dataset.cleared;
+                } else {
+                    eventColorInput.value = '#ff0000';
+                    eventColorInput.dataset.cleared = 'true';
+                }
+            }, 50);
         }
         
         function closeEventForm() {
@@ -2122,6 +2775,45 @@
             document.getElementById('eventTitle').value = '';
             document.getElementById('eventDescription').value = '';
             document.getElementById('eventEmoji').value = '';
+            const eventColorInput = document.getElementById('eventColor');
+            eventColorInput.value = '#ff0000';
+            delete eventColorInput.dataset.cleared;
+        }
+        
+        function clearEventColor() {
+            // 将值设回默认红色，但标记为"已清除"
+            document.getElementById('eventColor').value = '#ff0000';
+            document.getElementById('eventColor').dataset.cleared = 'true';
+            alert('✅ 已清除事件颜色，将使用标签颜色');
+        }
+        
+        function setEventColor(color) {
+            const input = document.getElementById('eventColor');
+            input.value = color;
+            delete input.dataset.cleared; // 移除清除标记
+        }
+        
+        function setTagColor(color) {
+            const input = document.getElementById('newTagColor');
+            if (input) input.value = color;
+        }
+        
+        function refreshColorPicker(input) {
+            // 刷新颜色选择器
+            if (!input) return;
+            const currentValue = input.value || '#ff0000';
+            input.value = currentValue;
+        }
+        
+        function isColorDark(hexColor) {
+            // 判断颜色是否太暗（会让颜色选择器显示黑白）
+            if (!hexColor || !hexColor.startsWith('#')) return false;
+            const rgb = parseInt(hexColor.slice(1), 16);
+            const r = (rgb >> 16) & 0xff;
+            const g = (rgb >> 8) & 0xff;
+            const b = rgb & 0xff;
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            return brightness < 80; // 亮度小于80认为太暗
         }
         
         function addTag() {
@@ -2316,6 +3008,20 @@
             const startTime = parseInt(document.getElementById('eventStartTime').value);
             const duration = parseInt(document.getElementById('eventDuration').value) || 1;
             const layer = parseInt(document.getElementById('eventLayer').value) || 0;
+            const colorInput = document.getElementById('eventColor');
+            let eventColor = '';
+            
+            // 添加空值检查
+            if (!colorInput) {
+                eventColor = '';
+            } else if (colorInput.dataset.cleared === 'true') {
+                // 已清除，不保存颜色
+                eventColor = '';
+                delete colorInput.dataset.cleared;
+            } else {
+                // 保存当前颜色值
+                eventColor = colorInput.value || '';
+            }
             
             if (!title) {
                 alert('请输入事件标题');
@@ -2334,7 +3040,7 @@
                 startTime,
                 duration,
                 layer,
-                color: 'rgb(59, 130, 246)', // 默认蓝色
+                eventColor: eventColor, // 保存事件独立颜色
                 tags: currentTags,
                 causes: currentCauses,
                 effects: currentEffects
@@ -2342,7 +3048,10 @@
             
             // 将事件的标签添加到全局标签库
             if (currentTags && currentTags.length > 0) {
-                currentTags.forEach(tag => globalTagLibrary.add(tag));
+                currentTags.forEach(tag => {
+                    globalTagLibrary.add(tag);
+                    ensureTagHasColor(tag);
+                });
             }
             
             if (editingEvent) {
@@ -2366,12 +3075,12 @@
                 
                 // 更新事件数据
                 Object.assign(editingEvent, eventData);
-                alert('✅ 事件编辑成功！');
+                showToast('✅ 事件编辑成功！', 'success');
             } else {
                 const maxId = Math.max(...events.map(e => parseInt(e.id.slice(1))), 0);
                 eventData.id = 't' + (maxId + 1);
                 events.push(eventData);
-                alert('✅ 事件添加成功！');
+                showToast('✅ 事件添加成功！', 'success');
             }
             
             // 建立双向绑定
@@ -2410,13 +3119,14 @@
             events = events.filter(e => e.id !== selectedEvent.id);
             closeEventDetail();
             render();
-            alert('✅ 事件删除成功！');
+            showToast('✅ 事件删除成功！', 'success');
         }
         
         function exportData() {
             const data = {
                 events: events,
                 days: days,
+                tagColors: tagColors,
                 exportTime: new Date().toLocaleString('zh-CN')
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -2426,7 +3136,7 @@
             a.download = `故事大纲_${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            alert('✅ 导出成功！');
+            showToast('✅ 导出成功！', 'success');
         }
         
         function importData(event) {
@@ -2439,6 +3149,7 @@
                     const data = JSON.parse(e.target.result);
                     if (data.events) events = data.events;
                     if (data.days) days = data.days;
+                    if (data.tagColors) tagColors = data.tagColors;
                     // 兼容旧格式
                     if (data.chapters && !data.days) {
                         days = data.chapters.map(c => ({
@@ -2449,9 +3160,9 @@
                         }));
                     }
                     render();
-                    alert('✅ 导入成功！');
+                    showToast('✅ 导入成功！', 'success');
                 } catch (err) {
-                    alert('❌ 导入失败：文件格式错误');
+                    showToast('❌ 导入失败：文件格式错误', 'error');
                 }
             };
             reader.readAsText(file);
@@ -2841,8 +3552,6 @@
             hiddenImage: '',
             surfaceColor: '#0c4a6e',
             surfaceImage: '',
-            hiddenEventColor: '#a855f7',
-            surfaceEventColor: '#3b82f6',
             gridOpacity: 30,
             gridColor: '#8b5cf6',
             dividerBgColor: '#8b5cf6',
@@ -2865,8 +3574,6 @@
                 hiddenImage: document.getElementById('hiddenImage'),
                 surfaceColor: document.getElementById('surfaceColor'),
                 surfaceImage: document.getElementById('surfaceImage'),
-                hiddenEventColor: document.getElementById('hiddenEventColor'),
-                surfaceEventColor: document.getElementById('surfaceEventColor'),
                 gridOpacity: document.getElementById('gridOpacity'),
                 opacityValue: document.getElementById('opacityValue'),
                 gridColor: document.getElementById('gridColor'),
@@ -2882,8 +3589,6 @@
             if (inputs.hiddenImage) inputs.hiddenImage.value = customColors.hiddenImage;
             if (inputs.surfaceColor) inputs.surfaceColor.value = customColors.surfaceColor;
             if (inputs.surfaceImage) inputs.surfaceImage.value = customColors.surfaceImage;
-            if (inputs.hiddenEventColor) inputs.hiddenEventColor.value = customColors.hiddenEventColor;
-            if (inputs.surfaceEventColor) inputs.surfaceEventColor.value = customColors.surfaceEventColor;
             if (inputs.gridOpacity) inputs.gridOpacity.value = customColors.gridOpacity;
             if (inputs.opacityValue) inputs.opacityValue.textContent = customColors.gridOpacity + '%';
             if (inputs.gridColor) inputs.gridColor.value = customColors.gridColor;
@@ -3024,8 +3729,6 @@
                 hiddenImage: document.getElementById('hiddenImage').value,
                 surfaceColor: document.getElementById('surfaceColor').value,
                 surfaceImage: document.getElementById('surfaceImage').value,
-                hiddenEventColor: document.getElementById('hiddenEventColor').value,
-                surfaceEventColor: document.getElementById('surfaceEventColor').value,
                 gridOpacity: parseInt(document.getElementById('gridOpacity').value),
                 gridColor: document.getElementById('gridColor').value,
                 dividerBgColor: document.getElementById('dividerBgColor').value,
@@ -3051,8 +3754,6 @@
                 hiddenImage: '',
                 surfaceColor: '#0c4a6e',
                 surfaceImage: '',
-                hiddenEventColor: '#a855f7',
-                surfaceEventColor: '#3b82f6',
                 gridOpacity: 30,
                 gridColor: '#8b5cf6',
                 dividerBgColor: '#8b5cf6',
@@ -3084,17 +3785,35 @@
 
         // 按标签筛选
         function filterByTag(tag) {
+            // 既过滤事件，又显示因果链箭头
             filteredTag = tag;
+            showCausalChain = true;
+            causalChainTag = tag;
+            showCausalChainHint(tag);
             render();
             closeTagManager();
-            showFilterHint(tag);
         }
         
         // 清除筛选
         function clearTagFilter() {
             filteredTag = null;
+            showCausalChain = false;
+            causalChainTag = null;
             render();
             hideFilterHint();
+        }
+        
+        // 显示因果链提示
+        function showCausalChainHint(tag) {
+            const hint = document.getElementById('timelineHint');
+            hint.innerHTML = `
+                <span>🔍 筛选标签: <strong>${tag}</strong> | 🔗 显示因果链</span>
+                <button class="btn btn-sm btn-danger" onclick="clearTagFilter()" style="padding: 6px 14px; margin-left: 10px;">
+                    ✖ 清除筛选
+                </button>
+            `;
+            hint.style.background = '#dbeafe';
+            hint.style.padding = '12px 20px';
         }
         
         // 显示筛选提示
@@ -3153,7 +3872,9 @@
         // 创建新标签
         function createNewTag() {
             const input = document.getElementById('newTagInput');
+            const colorInput = document.getElementById('newTagColor');
             let tag = input.value.trim();
+            const color = colorInput.value;
             
             if (!tag) {
                 alert('❌ 请输入标签名称');
@@ -3178,6 +3899,9 @@
             // 添加到全局标签库
             globalTagLibrary.add(tag);
             
+            // 保存标签颜色
+            tagColors[tag] = color;
+            
             // 添加标签到选中的事件
             let addedCount = 0;
             events.forEach(event => {
@@ -3193,6 +3917,7 @@
             });
             
             input.value = '';
+            colorInput.value = '#ff0000'; // 重置颜色为默认
             renderEventCheckboxList(); // 重新渲染复选框（清空选中状态）
             renderTagManager();
             render(); // 刷新时间线
@@ -3253,6 +3978,12 @@
             console.log(`✅ 已删除标签 "${tag}"，从 ${removedCount} 个事件中移除`);
         }
         
+        function updateTagColor(tag, color) {
+            tagColors[tag] = color;
+            renderTimeline(); // 刷新时间线以显示新颜色
+            console.log(`✅ 标签 "${tag}" 颜色已更新为 ${color}`);
+        }
+        
         function renderTagManager() {
             const tagMap = new Map();
             
@@ -3292,7 +4023,13 @@
                 ${tags.map(([tag, tagEvents]) => `
                     <div class="tag-stat-item">
                         <div class="tag-stat-header">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="color" 
+                                           value="${tagColors[tag] || '#8b5cf6'}" 
+                                           onchange="updateTagColor('${tag.replace(/'/g, "\\'")}', this.value)"
+                                           style="width: 30px; height: 30px; border: none; border-radius: 4px; cursor: pointer;">
+                                </div>
                                 <span class="tag-stat-name" style="cursor: pointer; text-decoration: underline;" onclick="filterByTag('${tag.replace(/'/g, "\\'")}')"><strong>${tag}</strong></span>
                                 <button class="btn btn-danger btn-sm" data-tag="${tag}" onclick="handleDeleteTag(this)" style="padding: 4px 10px; font-size: 12px;">
                                     🗑️ 删除
@@ -3306,6 +4043,13 @@
                     </div>
                 `).join('')}
             `;
+        }
+        
+        function ensureTagHasColor(tag) {
+            if (!tagColors[tag]) {
+                tagColors[tag] = defaultTagColors[colorIndex % defaultTagColors.length];
+                colorIndex++;
+            }
         }
         
         // Initialize app
