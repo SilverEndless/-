@@ -27,6 +27,7 @@
         @media (max-width: 767px) {
             body {
                 padding: 3px;
+                padding-bottom: 80px;
             }
         }
         .container { 
@@ -107,11 +108,15 @@
         .timeline-toolbar {
             background: #374151;
             padding: 8px;
+            padding-left: 60px; /* 为左上角的菜单按钮留出空间 */
             display: flex;
+            flex-direction: row;
             gap: 5px;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             flex-shrink: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
         @media (min-width: 768px) {
             .timeline-toolbar {
@@ -122,12 +127,68 @@
         @media (max-width: 767px) {
             .timeline-toolbar {
                 padding: 4px;
+                padding-left: 55px; /* 移动端也为菜单按钮留出空间 */
                 gap: 3px;
+                -webkit-overflow-scrolling: touch;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+            }
+            .timeline-toolbar .btn {
+                padding: 6px 10px;
+                font-size: 12px;
+                display: inline-flex;
+                align-items: center;
             }
         }
         .timeline-toolbar .btn { 
             padding: 4px 8px; 
-            font-size: 11px; 
+            font-size: 11px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        /* 隐藏工具栏滚动条 */
+        .timeline-toolbar::-webkit-scrollbar {
+            height: 3px;
+        }
+        .timeline-toolbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .timeline-toolbar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        @media (max-width: 767px) {
+            .timeline-toolbar::-webkit-scrollbar {
+                display: none;
+            }
+        }
+        /* 缩放控件样式 */
+        .zoom-input {
+            width: 50px;
+            padding: 3px 6px;
+            border: 1px solid #4b5563;
+            border-radius: 4px;
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            font-size: 11px;
+        }
+        @media (max-width: 767px) {
+            .zoom-input {
+                width: 40px;
+                font-size: 10px;
+                padding: 2px 4px;
+            }
+        }
+        .zoom-percent {
+            color: white;
+            font-size: 11px;
+            margin-left: -2px;
+        }
+        @media (max-width: 767px) {
+            .zoom-percent {
+                font-size: 10px;
+            }
         }
         @media (min-width: 768px) {
             .timeline-toolbar .btn {
@@ -177,6 +238,11 @@
             background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%);
             min-height: 200px;
             border-bottom: 5px solid #a78bfa;
+        }
+        
+        /* 暗层内的事件：hover时从底部扩展（因为暗层是反向的，layer 0在底部） */
+        .hidden-layer-area .event-block {
+            transform-origin: center bottom;
         }
         
         .surface-layer-area {
@@ -321,6 +387,7 @@
             opacity: 1.0;  /* 完全不透明，保持原样 */
             z-index: 1000;  /* 提高到最高层，确保在时间轴分隔线之上 */
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* 添加阴影表示正在拖动 */
+            transform: none !important; /* 拖动时禁用hover的transform，避免位置错乱 */
             /* 不改变大小和透明度，保持原始外观 */
         }
         .event-block.selected { 
@@ -554,6 +621,22 @@
         }
         
         .form-group { margin-bottom: 15px; }
+        
+        /* 快速选择标签滚动条样式 */
+        #availableTagsList::-webkit-scrollbar {
+            height: 6px;
+        }
+        #availableTagsList::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        #availableTagsList::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        #availableTagsList::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         .form-label {
             display: block;
             font-weight: bold;
@@ -623,6 +706,12 @@
             font-size: 14px;
             flex-shrink: 0;
         }
+        @media (max-width: 767px) {
+            .timeline-hint {
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+        }
         .timeline-scale {
             background: #1f2937;
             border-top: 1px solid #4b5563;
@@ -632,6 +721,37 @@
             display: flex;
             justify-content: space-between;
             flex-shrink: 0;
+        }
+        
+        /* 天数列表滚动容器 */
+        .chapter-list-container {
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            background: #ffffff;
+            margin-bottom: 20px;
+        }
+        
+        /* 美化滚动条 */
+        .chapter-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chapter-list-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .chapter-list-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        .chapter-list-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
         
         .chapter-item {
@@ -814,6 +934,13 @@
                 width: 100%;
             }
             
+            /* timeline-toolbar的按钮保持横向 */
+            .timeline-toolbar .btn,
+            .timeline-toolbar .btn-sm {
+                width: auto !important;
+                flex-shrink: 0;
+            }
+            
             .event-block {
                 font-size: 11px;
                 padding: 6px;
@@ -901,6 +1028,22 @@
         }
         .sidebar-content {
             padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sidebar-content .btn {
+            flex: 1 1 calc(50% - 4px);
+            min-width: 120px;
+        }
+        @media (max-width: 767px) {
+            .sidebar-content {
+                gap: 6px;
+            }
+            .sidebar-content .btn {
+                flex: 1 1 calc(50% - 3px);
+                min-width: 100px;
+            }
         }
         .menu-toggle {
             position: fixed;
@@ -935,9 +1078,90 @@
         .header {
             display: none;
         }
+        
+        /* 自定义弹窗系统 */
+        .custom-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-dialog-overlay.show {
+            display: flex;
+        }
+        .custom-dialog {
+            background: #1f2937;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: dialogSlideIn 0.3s ease-out;
+        }
+        @keyframes dialogSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .custom-dialog-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 16px;
+        }
+        .custom-dialog-message {
+            color: #d1d5db;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+        .custom-dialog-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            background: #374151;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .custom-dialog-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .custom-dialog-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .custom-dialog-buttons .btn {
+            min-width: 80px;
+        }
 </style>
 </head>
 <body>
+    <!-- 自定义弹窗 -->
+    <div class="custom-dialog-overlay" id="customDialog">
+        <div class="custom-dialog">
+            <div class="custom-dialog-title" id="dialogTitle"></div>
+            <div class="custom-dialog-message" id="dialogMessage"></div>
+            <input type="text" class="custom-dialog-input" id="dialogInput" style="display: none;">
+            <div class="custom-dialog-buttons" id="dialogButtons"></div>
+        </div>
+    </div>
+    
     <!-- 汉堡菜单按钮 -->
     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
     
@@ -950,16 +1174,13 @@
             <div class="title">📖 故事大纲管理器 v1.0</div>
         </div>
         <div class="sidebar-content">
-            <button class="btn btn-purple" onclick="exportData()" style="width: 100%; margin-bottom: 10px;">
+            <button class="btn btn-purple" onclick="exportData()">
                 <span class="btn-icon">📥</span><span class="btn-text"> 导出</span>
             </button>
-            <label class="btn btn-indigo" style="width: 100%; margin-bottom: 10px; display: block; text-align: center; cursor: pointer;">
+            <label class="btn btn-indigo" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
                 <span class="btn-icon">📤</span><span class="btn-text"> 导入</span>
                 <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importData(event)">
             </label>
-            <button class="btn btn-primary" id="editModeBtn" onclick="toggleEditMode()" style="width: 100%;">
-                <span class="btn-icon">✎</span><span class="btn-text"> 编辑</span>
-            </button>
         </div>
     </div>
     
@@ -982,6 +1203,7 @@
                 <button class="btn btn-secondary btn-sm" onclick="showDayManager()"><span class="btn-icon">⚙️</span><span class="btn-text"> 天数管理</span></button>
                 <button class="btn btn-secondary btn-sm" onclick="showTagManager()"><span class="btn-icon">🏷️</span><span class="btn-text"> 标签管理</span></button>
                 <button class="btn btn-secondary btn-sm" onclick="showColorCustomizer()"><span class="btn-icon">🎨</span><span class="btn-text"> 颜色设置</span></button>
+                <button class="btn btn-primary btn-sm" id="editModeBtn" onclick="toggleEditMode()"><span class="btn-icon">✎</span><span class="btn-text"> 编辑</span></button>
                 
                 <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;"><span class="btn-icon">➕</span><span class="btn-text"> 添加事件</span></button>
             </div>
@@ -1089,7 +1311,7 @@
                         
                         <div style="margin-top: 12px;">
                             <label style="font-size: 13px; color: #6b7280; margin-bottom: 6px; display: block;">💡 快速选择标签：</label>
-                            <div id="availableTagsList" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 35px;">
+                            <div id="availableTagsList" style="display: flex; flex-wrap: nowrap; gap: 6px; padding: 10px; background: #f9fafb; border-radius: 8px; min-height: 50px; overflow-x: auto; overflow-y: hidden;">
                                 <!-- 可选标签列表 -->
                             </div>
                         </div>
@@ -1178,7 +1400,10 @@
                     </button>
                 </div>
                 
-                <div id="chapterList"></div>
+                <!-- 天数列表滚动容器 -->
+                <div class="chapter-list-container">
+                    <div id="chapterList"></div>
+                </div>
                 
                 <div style="border-top: 2px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
                     <h3 style="font-weight: bold; margin-bottom: 15px; color: #111827;">添加新天数</h3>
@@ -1399,6 +1624,110 @@
         let causalChainTag = null; // 当前显示因果链的标签
         let globalTagLibrary = new Set(); // 全局标签库，包含所有创建过的标签
         let tagColors = {}; // 标签颜色映射，格式：{tagName: colorHex}
+        let currentMaxHiddenLayer = 3; // 当前暗层最大层数（用于拖动时计算位置）
+        let currentMaxSurfaceLayer = 3; // 当前表层最大层数（用于拖动时计算位置）
+        
+        // ============ 自定义弹窗系统 ============
+        
+        // 自定义Alert
+        function customAlert(message, title = '提示') {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('customDialog');
+                const titleEl = document.getElementById('dialogTitle');
+                const messageEl = document.getElementById('dialogMessage');
+                const inputEl = document.getElementById('dialogInput');
+                const buttonsEl = document.getElementById('dialogButtons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                inputEl.style.display = 'none';
+                buttonsEl.innerHTML = '<button class="btn btn-primary" onclick="closeCustomDialog()">确定</button>';
+                
+                overlay.classList.add('show');
+                
+                window.customDialogResolve = resolve;
+            });
+        }
+        
+        // 自定义Confirm
+        function customConfirm(message, title = '确认') {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('customDialog');
+                const titleEl = document.getElementById('dialogTitle');
+                const messageEl = document.getElementById('dialogMessage');
+                const inputEl = document.getElementById('dialogInput');
+                const buttonsEl = document.getElementById('dialogButtons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                inputEl.style.display = 'none';
+                buttonsEl.innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeCustomDialog(false)">取消</button>
+                    <button class="btn btn-primary" onclick="closeCustomDialog(true)">确定</button>
+                `;
+                
+                overlay.classList.add('show');
+                
+                window.customDialogResolve = resolve;
+            });
+        }
+        
+        // 自定义Prompt
+        function customPrompt(message, defaultValue = '', title = '输入') {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('customDialog');
+                const titleEl = document.getElementById('dialogTitle');
+                const messageEl = document.getElementById('dialogMessage');
+                const inputEl = document.getElementById('dialogInput');
+                const buttonsEl = document.getElementById('dialogButtons');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                inputEl.style.display = 'block';
+                inputEl.value = defaultValue;
+                buttonsEl.innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeCustomDialog(null)">取消</button>
+                    <button class="btn btn-primary" onclick="closeCustomDialog(document.getElementById('dialogInput').value)">确定</button>
+                `;
+                
+                overlay.classList.add('show');
+                
+                // 聚焦输入框
+                setTimeout(() => inputEl.focus(), 100);
+                
+                // 支持回车确认
+                inputEl.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        closeCustomDialog(inputEl.value);
+                    }
+                };
+                
+                window.customDialogResolve = resolve;
+            });
+        }
+        
+        // 关闭弹窗
+        function closeCustomDialog(result) {
+            const overlay = document.getElementById('customDialog');
+            overlay.classList.remove('show');
+            
+            if (window.customDialogResolve) {
+                window.customDialogResolve(result);
+                window.customDialogResolve = null;
+            }
+        }
+        
+        // 点击overlay关闭
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('customDialog');
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeCustomDialog(false);
+                }
+            });
+        });
+        
+        // ============ 自定义弹窗系统结束 ============
         
         // 预设标签颜色（用于新标签）
         const defaultTagColors = [
@@ -1790,18 +2119,31 @@
             const hiddenEvents = displayEvents.filter(e => e.eventLayer === 'hidden');
             const surfaceEvents = displayEvents.filter(e => !e.eventLayer || e.eventLayer === 'surface');
             
-            // 计算各层高度，限制最大层数为5，最小也是5以确保有足够空间
-            const maxHiddenLayer = hiddenEvents.length > 0 ? Math.min(5, Math.max(...hiddenEvents.map(e => e.layer), 5)) : 5;
-            const maxSurfaceLayer = surfaceEvents.length > 0 ? Math.min(5, Math.max(...surfaceEvents.map(e => e.layer), 5)) : 5;
+            // 计算各层高度：根据实际使用的最大行数+3行缓冲空间，如果没有事件则默认3行
+            const maxHiddenLayer = hiddenEvents.length > 0 ? Math.max(...hiddenEvents.map(e => e.layer)) + 3 : 3;
+            const maxSurfaceLayer = surfaceEvents.length > 0 ? Math.max(...surfaceEvents.map(e => e.layer)) + 3 : 3;
             
-            const hiddenAreaHeight = (maxHiddenLayer + 1) * 50 + 50;
-            const surfaceAreaHeight = (maxSurfaceLayer + 1) * 50 + 50;
+            // 更新全局变量，供拖动时使用
+            currentMaxHiddenLayer = maxHiddenLayer;
+            currentMaxSurfaceLayer = maxSurfaceLayer;
+            
+            const hiddenAreaHeight = (maxHiddenLayer + 1) * 55 + 20;
+            const surfaceAreaHeight = (maxSurfaceLayer + 1) * 55 + 20;
             
             // 渲染单个事件块
             const renderEventBlock = (event, isHidden) => {
                 const left = (event.startTime - minChapter) * chapterWidth;
                 const width = event.duration * chapterWidth; // 允许任意宽度
-                const top = event.layer * 55 + 20; // 使用55px层间距以充分利用350px高度
+                
+                // 暗层：layer越大越往上（反向），表层：layer越大越往下（正向）
+                let top;
+                if (isHidden) {
+                    // 暗层：从底部往上，layer 0在底部
+                    top = (maxHiddenLayer - event.layer) * 55 + 20;
+                } else {
+                    // 表层：从顶部往下，layer 0在顶部
+                    top = event.layer * 55 + 20;
+                }
                 
                 // 颜色优先级：事件自身颜色 > 标签颜色 > 默认颜色
                 let baseColor = null;
@@ -1980,7 +2322,7 @@
             // 动态调整标题字体大小
             setTimeout(() => {
                 adjustTitleFontSizes();
-            }, 50);
+            }, 100);
         }
         
         // 动态调整标题字体大小
@@ -2000,15 +2342,18 @@
                 titleElement.style.webkitBoxOrient = 'vertical';
                 titleElement.style.overflow = 'hidden';
                 titleElement.style.textOverflow = 'ellipsis';
+                titleElement.style.lineHeight = '1.2';
                 
-                // 检测2行是否放得下（用scrollHeight）
-                // 如果2行高度超出，说明内容太多，需要缩小字体
-                const maxHeight = fontSize * 1.2 * 2; // line-height * 行数
+                // 强制重排以获取准确的尺寸
+                titleElement.offsetHeight;
                 
-                // 如果2行放不下，逐步缩小字体
-                while (fontSize > minFontSize && titleElement.scrollHeight > maxHeight + 2) {
+                // 检测内容是否溢出（用clientHeight vs scrollHeight）
+                // 如果scrollHeight > clientHeight，说明内容溢出了
+                while (fontSize > minFontSize && titleElement.scrollHeight > titleElement.clientHeight + 2) {
                     fontSize -= 0.5;
                     titleElement.style.fontSize = fontSize + 'px';
+                    // 强制重排
+                    titleElement.offsetHeight;
                 }
                 
                 // 达到最小字体后，如果还放不下，使用省略号（已经设置了textOverflow: ellipsis）
@@ -2369,30 +2714,63 @@
                 const rect = hiddenArea.getBoundingClientRect();
                 const relativeY = clientY - rect.top;
                 
-                // 直接计算layer，使用55px层间距以充分利用350px高度
-                const calculatedLayer = Math.floor((relativeY - 20) / 55);
-                const newLayer = Math.max(0, Math.min(5, calculatedLayer)); // 限制0-5层
-                
-                // 调试日志
-                if (newLayer >= 4) {
-                    console.log(`暗层拖动: relativeY=${relativeY.toFixed(0)}, calculatedLayer=${calculatedLayer}, newLayer=${newLayer}`);
-                }
+                // 暗层：从底部往上计算layer，relativeY越小（往上），layer应该越大
+                const fromBottom = rect.height - relativeY; // 从底部的距离
+                const calculatedLayer = Math.floor((fromBottom - 20) / 55);
+                const newLayer = Math.max(0, calculatedLayer); // 只限制最小值
                 
                 draggingEvent.startTime = newStartTime;
                 draggingEvent.layer = newLayer;
                 block.style.left = ((newStartTime - minChapter) * chapterWidth) + 'px';
-                block.style.top = (newLayer * 55 + 20) + 'px';
+                
+                // 实时计算当前所有暗层事件的最大layer（包括正在拖动的）
+                const allHiddenLayers = events
+                    .filter(e => e.eventLayer === 'hidden')
+                    .map(e => e.layer);
+                const dynamicMaxLayer = Math.max(...allHiddenLayers, newLayer, 3);
+                
+                // 只有当需要的最大层超过当前容器能容纳的层数时，才重新渲染
+                // 容器高度 = (currentMaxHiddenLayer + 1) * 55 + 20
+                // 能容纳的最大layer = currentMaxHiddenLayer
+                if (newLayer > currentMaxHiddenLayer) {
+                    console.log(`暗层需要扩展: 当前最大${currentMaxHiddenLayer}, 需要${newLayer}`);
+                    currentMaxHiddenLayer = newLayer + 3; // 扩展时加3行缓冲
+                    render();
+                    const newBlock = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+                    if (newBlock) {
+                        newBlock.classList.add('dragging');
+                    }
+                    return;
+                }
+                
+                // 使用当前的currentMaxHiddenLayer来设置top位置（反向）
+                // 注意：这里必须用currentMaxHiddenLayer，不能用dynamicMaxLayer
+                // 因为currentMaxHiddenLayer决定了容器的实际高度
+                block.style.top = ((currentMaxHiddenLayer - newLayer) * 55 + 20) + 'px';
             } else if (surfaceArea) {
                 const rect = surfaceArea.getBoundingClientRect();
                 const relativeY = clientY - rect.top;
                 
                 // 直接计算layer，使用55px层间距
                 const calculatedLayer = Math.floor((relativeY - 20) / 55);
-                const newLayer = Math.max(0, Math.min(5, calculatedLayer)); // 限制0-5层
+                const newLayer = Math.max(0, calculatedLayer); // 只限制最小值
                 
                 draggingEvent.startTime = newStartTime;
                 draggingEvent.layer = newLayer;
                 block.style.left = ((newStartTime - minChapter) * chapterWidth) + 'px';
+                
+                // 只有当需要的层数超过当前容器能容纳的层数时，才重新渲染
+                if (newLayer > currentMaxSurfaceLayer) {
+                    console.log(`表层需要扩展: 当前最大${currentMaxSurfaceLayer}, 需要${newLayer}`);
+                    currentMaxSurfaceLayer = newLayer + 3; // 扩展时加3行缓冲
+                    render();
+                    const newBlock = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+                    if (newBlock) {
+                        newBlock.classList.add('dragging');
+                    }
+                    return;
+                }
+                
                 block.style.top = (newLayer * 55 + 20) + 'px';
             }
         }
@@ -2520,8 +2898,17 @@
         function findFreeLayer(startTime, duration, excludeId, eventLayer = 'surface') {
             const eventEnd = startTime + duration;
             
-            // 只搜索0-5层
-            for (let layer = 0; layer <= 5; layer++) {
+            // 先计算当前该层的最大layer
+            const sameLayerEvents = events.filter(e => 
+                e.id !== excludeId && (e.eventLayer || 'surface') === eventLayer
+            );
+            const currentMaxLayer = sameLayerEvents.length > 0 ? 
+                Math.max(...sameLayerEvents.map(e => e.layer)) : 0;
+            
+            // 搜索到当前最大层+3，确保有足够空间
+            const searchMaxLayer = currentMaxLayer + 3;
+            
+            for (let layer = 0; layer <= searchMaxLayer; layer++) {
                 let isFree = true;
                 
                 for (let other of events) {
@@ -2544,8 +2931,8 @@
                 }
             }
             
-            // 如果0-5层都满了，返回5（最后一层）
-            return 5;
+            // 如果所有层都满了，返回最大层+1（创建新层）
+            return searchMaxLayer + 1;
         }
         
         function startResize(e) {
@@ -2784,7 +3171,7 @@
             // 将值设回默认红色，但标记为"已清除"
             document.getElementById('eventColor').value = '#ff0000';
             document.getElementById('eventColor').dataset.cleared = 'true';
-            alert('✅ 已清除事件颜色，将使用标签颜色');
+            customAlert('✅ 已清除事件颜色，将使用标签颜色');
         }
         
         function setEventColor(color) {
@@ -2974,9 +3361,9 @@
                 <button type="button" 
                         class="btn btn-sm" 
                         onclick="quickAddTag('${tag.replace(/'/g, "\\'")}')"
-                        style="background: white; border: 1px solid #d1d5db; color: #374151; padding: 4px 12px; font-size: 13px; cursor: pointer; transition: all 0.2s;"
-                        onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='#9ca3af';"
-                        onmouseout="this.style.background='white'; this.style.borderColor='#d1d5db';">
+                        style="background: white; border: 1.5px solid #cbd5e1; color: #475569; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: all 0.2s; border-radius: 20px; white-space: nowrap; flex-shrink: 0;"
+                        onmouseover="this.style.background='#e0f2fe'; this.style.borderColor='#0284c7'; this.style.color='#0c4a6e';"
+                        onmouseout="this.style.background='white'; this.style.borderColor='#cbd5e1'; this.style.color='#475569';">
                     ${tag}
                 </button>
             `).join('');
@@ -3024,12 +3411,12 @@
             }
             
             if (!title) {
-                alert('请输入事件标题');
+                customAlert('请输入事件标题');
                 return;
             }
             
             if (isNaN(startTime)) {
-                alert('请输入有效的起始章节');
+                customAlert('请输入有效的起始章节');
                 return;
             }
             
@@ -3112,9 +3499,9 @@
             render();
         }
         
-        function deleteEvent() {
+        async function deleteEvent() {
             if (!selectedEvent) return;
-            if (!confirm('确定删除此事件吗？')) return;
+            if (!await customConfirm('确定删除此事件吗？', '删除事件')) return;
             
             events = events.filter(e => e.id !== selectedEvent.id);
             closeEventDetail();
@@ -3279,24 +3666,24 @@
             const endChapter = parseInt(document.getElementById(`editChapterEnd-${id}`).value);
             
             if (!name) {
-                alert('❌ 请输入天数名称');
+                customAlert('❌ 请输入天数名称');
                 return;
             }
             
             if (isNaN(startChapter) || isNaN(endChapter)) {
-                alert('❌ 请输入有效的章节号');
+                customAlert('❌ 请输入有效的章节号');
                 return;
             }
             
             if (endChapter < startChapter) {
-                alert(`❌ 结束章节不能小于起始章节！\n\n当前设置：${formatChapter(startChapter)} - ${formatChapter(endChapter)}\n\n请修改为：结束章节 >= 起始章节\n例如：${formatChapter(startChapter)} - ${formatChapter(startChapter)} 或 ${formatChapter(startChapter)} - ${formatChapter(startChapter + 5)}`);
+                customAlert(`❌ 结束章节不能小于起始章节！\n\n当前设置：${formatChapter(startChapter)} - ${formatChapter(endChapter)}\n\n请修改为：结束章节 >= 起始章节\n例如：${formatChapter(startChapter)} - ${formatChapter(startChapter)} 或 ${formatChapter(startChapter)} - ${formatChapter(startChapter + 5)}`);
                 return;
             }
             
             // 检查章节范围重叠
             const overlapCheck = checkChapterOverlap(startChapter, endChapter, id);
             if (overlapCheck.overlap) {
-                alert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
+                customAlert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
                       `${overlapCheck.conflictDay.name}: ${formatChapterRange(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter)}\n` +
                       `当前设置: ${formatChapterRange(startChapter, endChapter)}\n\n` +
                       `请调整章节范围，避免重叠。`);
@@ -3312,7 +3699,7 @@
             
             renderDayList();
             render();
-            alert('✅ 天数修改成功！');
+            customAlert('✅ 天数修改成功！');
         }
         
         // 自定义确认对话框
@@ -3368,7 +3755,7 @@
             
             if (!day) {
                 console.log('错误：找不到该天数');
-                alert('❌ 找不到该天数');
+                customAlert('❌ 找不到该天数');
                 return;
             }
             
@@ -3395,7 +3782,7 @@
                 
                 if (beforeLength === afterLength) {
                     console.log('警告：删除失败，数量没有变化');
-                    alert('❌ 删除失败，请刷新页面重试');
+                    customAlert('❌ 删除失败，请刷新页面重试');
                     return;
                 }
                 
@@ -3404,18 +3791,18 @@
                 render();
                 
                 console.log('删除完成');
-                alert(`✅ 已删除「${day.name}」`);
+                customAlert(`✅ 已删除「${day.name}」`);
             });
         }
         
         
         // 自定义自动生成天数
-        function autoGenerateDaysCustom() {
+        async function autoGenerateDaysCustom() {
             const startDayInput = document.getElementById('autoStartDay');
             const chaptersPerDayInput = document.getElementById('autoChaptersPerDay');
             
             if (!startDayInput || !chaptersPerDayInput) {
-                alert('❌ 找不到输入框');
+                showToast('❌ 找不到输入框', 'error');
                 return;
             }
             
@@ -3423,14 +3810,27 @@
             const chaptersPerDay = parseInt(chaptersPerDayInput.value) || 1;
             
             if (startDay < 1 || chaptersPerDay < 1) {
-                alert('❌ 起始天数和每天章节数必须大于0');
+                showToast('❌ 起始天数和每天章节数必须大于0', 'error');
+                return;
+            }
+            
+            // 询问要生成多少章
+            const totalChaptersInput = await customPrompt('要生成多少章？\n\n提示：\n• 如果有事件，会自动覆盖所有事件的章节范围\n• 如果没有事件，需要手动输入章节数量', events.length > 0 ? '' : '100', '生成章节');
+            
+            if (!totalChaptersInput) {
+                return; // 用户取消
+            }
+            
+            const totalChapters = parseInt(totalChaptersInput);
+            if (isNaN(totalChapters) || totalChapters < 1) {
+                showToast('❌ 请输入有效的章节数量', 'error');
                 return;
             }
             
             // 询问是否清空现有天数
             let shouldClear = false;
             if (days.length > 0) {
-                shouldClear = confirm(`当前已有 ${days.length} 个天数段。\n\n点击"确定"将清空现有天数并重新生成\n点击"取消"将在现有天数基础上追加`);
+                shouldClear = await customConfirm(`当前已有 ${days.length} 个天数段。\n\n点击"确定"将清空现有天数并重新生成\n点击"取消"将在现有天数基础上追加`, '清空现有天数？');
                 if (shouldClear) {
                     days = [];
                 }
@@ -3438,11 +3838,14 @@
             
             // 找出所有事件的章节范围
             let minChapter = 1;
-            let maxChapter = 10;
+            let maxChapter = totalChapters;
             
             if (events.length > 0) {
-                minChapter = Math.min(...events.map(e => e.startTime));
-                maxChapter = Math.max(...events.map(e => e.startTime + e.duration));
+                const eventMinChapter = Math.min(...events.map(e => e.startTime));
+                const eventMaxChapter = Math.max(...events.map(e => e.startTime + e.duration));
+                // 使用事件范围和用户输入的较大值
+                minChapter = Math.min(eventMinChapter, minChapter);
+                maxChapter = Math.max(eventMaxChapter, maxChapter);
             }
             
             // 按照规则生成天数
@@ -3480,9 +3883,9 @@
             render();
             
             if (newDaysCount > 0) {
-                alert(`✅ 自动生成完成！\n\n新增了 ${newDaysCount} 个天数段\n从第${startDay}天开始\n每天${chaptersPerDay}章`);
+                showToast(`✅ 自动生成完成！新增了 ${newDaysCount} 个天数段，从第${startDay}天开始，每天${chaptersPerDay}章`, 'success', 4000);
             } else {
-                alert('ℹ️ 所有章节都已有对应的天数段\n无需生成');
+                showToast('ℹ️ 所有章节都已有对应的天数段，无需生成', 'info');
             }
         }
         
@@ -3492,14 +3895,14 @@
             const endChapter = parseInt(document.getElementById('newChapterEnd').value) || 0;
             
             if (!name) {
-                alert('请输入天数名称');
+                customAlert('请输入天数名称');
                 return;
             }
             
             // 检查章节范围重叠
             const overlapCheck = checkChapterOverlap(startChapter, endChapter);
             if (overlapCheck.overlap) {
-                alert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
+                customAlert(`❌ 章节范围与「${overlapCheck.conflictDay.name}」重叠！\n\n` +
                       `${overlapCheck.conflictDay.name}: ${formatChapterRange(overlapCheck.conflictDay.startChapter, overlapCheck.conflictDay.endChapter)}\n` +
                       `当前设置: ${formatChapterRange(startChapter, endChapter)}\n\n` +
                       `请调整章节范围，避免重叠。例如：\n` +
@@ -3529,7 +3932,7 @@
             
             renderDayList();
             render();
-            alert('✅ 天数添加成功！');
+            customAlert('✅ 天数添加成功！');
         }
         
         function showTagManager() {
@@ -3743,7 +4146,7 @@
             applyColors();
             closeColorCustomizer();
             
-            alert('✅ 颜色设置已保存！');
+            customAlert('✅ 颜色设置已保存！');
         }
         
         function resetColors() {
@@ -3877,7 +4280,7 @@
             const color = colorInput.value;
             
             if (!tag) {
-                alert('❌ 请输入标签名称');
+                customAlert('❌ 请输入标签名称');
                 return;
             }
             
@@ -3888,7 +4291,7 @@
             
             // 检查标签是否已存在
             if (globalTagLibrary.has(tag)) {
-                alert(`⚠️ 标签 "${tag}" 已存在！`);
+                customAlert(`⚠️ 标签 "${tag}" 已存在！`);
                 return;
             }
             
@@ -3936,7 +4339,7 @@
             const tag = button.getAttribute('data-tag');
             console.log('要删除的标签:', tag);
             if (!tag) {
-                alert('错误：无法获取标签名');
+                customAlert('错误：无法获取标签名');
                 return;
             }
             executeDeleteTag(tag); // 直接删除，不需要确认
