@@ -2559,10 +2559,16 @@
                     btn.style.borderColor = '#4caf50';
                 }
                 
-                showToast('✅ 登录成功！正在同步到Google Drive...', 'success');
+                showToast('✅ 登录成功！正在加载云端数据...', 'success');
                 
-                // 登录成功后立即同步
-                await syncToGoogleDrive();
+                // 登录成功后先尝试加载云端数据
+                const loaded = await tryLoadFromGoogleDrive();
+                
+                // 如果云端没有数据，则同步当前数据
+                if (!loaded) {
+                    showToast('📤 云端无数据，正在同步当前数据...', 'info');
+                    await syncToGoogleDrive();
+                }
                 
                 // 自动启用自动同步
                 if (!autoCloudSyncEnabled) {
@@ -2725,6 +2731,100 @@
                 console.error('❌ 恢复失败:', error);
                 showToast('❌ 恢复失败：' + error.message, 'error');
                 accessToken = null;
+            }
+        }
+        
+        // 尝试从Google Drive加载数据（登录后自动调用）
+        async function tryLoadFromGoogleDrive() {
+            if (!accessToken) return false;
+            
+            try {
+                // 先尝试通过fileId加载
+                if (googleDriveFileId) {
+                    const response = await fetch(
+                        `https://www.googleapis.com/drive/v3/files/${googleDriveFileId}?alt=media`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        events = data.events || [];
+                        days = data.days || [];
+                        tagColors = data.tagColors || {};
+                        novelChapters = data.novelChapters || {};
+                        novelVolumes = data.novelVolumes || [{ id: 1, name: '第一卷', chapters: [], collapsed: false }];
+                        recycleBin = data.recycleBin || { chapters: [], volumes: [] };
+                        
+                        autoSave();
+                        render();
+                        renderNovelChapterList();
+                        
+                        showToast('✅ 已从云端恢复数据！', 'success');
+                        console.log('✅ 数据已恢复', data.savedAt);
+                        return true;
+                    }
+                }
+                
+                // 如果没有fileId或加载失败，尝试搜索文件
+                const searchResponse = await fetch(
+                    `https://www.googleapis.com/drive/v3/files?q=name='故事大纲_云端同步.json'&spaces=drive`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    }
+                );
+                
+                if (searchResponse.ok) {
+                    const searchResult = await searchResponse.json();
+                    
+                    if (searchResult.files && searchResult.files.length > 0) {
+                        // 找到文件，保存fileId并加载
+                        googleDriveFileId = searchResult.files[0].id;
+                        localStorage.setItem('googleDriveFileId', googleDriveFileId);
+                        
+                        const fileResponse = await fetch(
+                            `https://www.googleapis.com/drive/v3/files/${googleDriveFileId}?alt=media`,
+                            {
+                                headers: {
+                                    'Authorization': `Bearer ${accessToken}`
+                                }
+                            }
+                        );
+                        
+                        if (fileResponse.ok) {
+                            const data = await fileResponse.json();
+                            
+                            events = data.events || [];
+                            days = data.days || [];
+                            tagColors = data.tagColors || {};
+                            novelChapters = data.novelChapters || {};
+                            novelVolumes = data.novelVolumes || [{ id: 1, name: '第一卷', chapters: [], collapsed: false }];
+                            recycleBin = data.recycleBin || { chapters: [], volumes: [] };
+                            
+                            autoSave();
+                            render();
+                            renderNovelChapterList();
+                            
+                            showToast('✅ 已从云端恢复数据！', 'success');
+                            console.log('✅ 数据已恢复', data.savedAt);
+                            return true;
+                        }
+                    }
+                }
+                
+                // 云端没有找到文件
+                console.log('📭 云端暂无数据');
+                return false;
+                
+            } catch (error) {
+                console.error('❌ 尝试加载失败:', error);
+                return false;
             }
         }
         
