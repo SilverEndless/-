@@ -1732,15 +1732,6 @@
             <div class="title">📖 故事大纲管理器 v1.0</div>
         </div>
         <div class="sidebar-content">
-            <!-- 导出导入 -->
-            <button class="btn btn-purple" onclick="exportData()">
-                <span class="btn-icon">📥</span><span class="btn-text"> 导出</span>
-            </button>
-            <label class="btn btn-indigo" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                <span class="btn-icon">📤</span><span class="btn-text"> 导入</span>
-                <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="importData(event)">
-            </label>
-            
             <!-- Google Drive 云端同步（一键登录）-->
             <button class="btn" id="googleLoginBtn" onclick="handleGoogleLogin()" 
                     style="background: white; color: #202124; border: 1px solid #dadce0; font-weight: 500; padding: 12px; width: 100%;">
@@ -2265,7 +2256,10 @@
         let showCausalChain = false; // 是否显示因果链箭头
         let causalChainTag = null; // 当前显示因果链的标签
         let globalTagLibrary = new Set(); // 全局标签库，包含所有创建过的标签
-        let tagColors = {}; // 标签颜色映射，格式：{tagName: colorHex}
+        let tagColors = {
+            '#示例': '#3b82f6',
+            '#重要': '#22c55e'
+        }; // 标签颜色映射，格式：{tagName: colorHex}
         let currentMaxHiddenLayer = 3; // 当前暗层最大层数（用于拖动时计算位置）
         let currentMaxSurfaceLayer = 3; // 当前表层最大层数（用于拖动时计算位置）
 
@@ -2430,17 +2424,32 @@
         }
         
         // 导出到云端（生成下载文件）
-        // 定期自动保存（每30秒）
+        // 定期自动保存（每30秒）- 只保存到localStorage作为临时缓存
         setInterval(() => {
             autoSave();
         }, 30000);
         
-        // 页面加载时从localStorage恢复数据
+        // 版本管理：检查并清空旧版本数据
+        const APP_VERSION = 'v2.0-simplified'; // 简化版版本号
+        function checkAndClearOldData() {
+            const savedVersion = localStorage.getItem('appVersion');
+            if (savedVersion !== APP_VERSION) {
+                // 清空旧数据
+                localStorage.removeItem('storyOutlineData');
+                localStorage.setItem('appVersion', APP_VERSION);
+                console.log('🔄 检测到新版本，已清空旧数据');
+                showToast('🎉 欢迎使用简化版！已重置为示例数据', 'success');
+            }
+        }
+        
+        // 页面加载时检查版本
         window.addEventListener('DOMContentLoaded', () => {
-            loadFromLocalStorage();
+            checkAndClearOldData();
+            render();
+            console.log('📋 初始化完成，显示示例数据');
         });
         
-        // 页面关闭前保存
+        // 页面关闭前保存到localStorage作为临时缓存
         window.addEventListener('beforeunload', () => {
             autoSave();
         });
@@ -2914,23 +2923,16 @@
         let colorIndex = 0; // 当前使用的颜色索引
 
         let events = [
-            { id: 't1', title: '周明瑞成为诡秘之主', description: '整个故事的核心线，贯穿全文',
-              startTime: 1, duration: 100, layer: 0, color: 'rgb(147, 51, 234)', tags: ['#全局', '#主线'], causalNext: [] },
-            { id: 't2', title: '穿越觉醒', description: '周明瑞穿越到500地球，获得系统',
-              startTime: 1, duration: 2, layer: 1, color: 'rgb(59, 130, 246)', tags: ['#开局', '#穿越', '#廷根'], causalNext: ['t3'] },
-            { id: 't3', title: '加入值夜者', description: '通过测试，成为值夜者',
-              startTime: 6, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#值夜者', '#廷根'], causalNext: ['t4'] },
-            { id: 't4', title: '三件套获取', description: '在灰雾之上获得三件套',
-              startTime: 4, duration: 2, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#三件套', '#唯一性', '#灰雾'], causalNext: [] },
-            { id: 't5', title: '前世回忆', description: '周明瑞穿越前的记忆片段',
-              startTime: -3, duration: 3, layer: 1, color: 'rgb(107, 114, 128)', tags: ['#回忆', '#前世'], causalNext: [] }
+            { id: 'e1', title: '示例事件1', description: '这是一个跨越1-100章的示例事件',
+              startTime: 1, duration: 100, layer: 0, color: 'rgb(59, 130, 246)', tags: ['#示例'], causalNext: [] },
+            { id: 'e2', title: '示例事件2', description: '这是一个跨越1-3章的示例事件',
+              startTime: 1, duration: 3, layer: 1, color: 'rgb(34, 197, 94)', tags: ['#重要'], causalNext: [] },
+            { id: 'e3', title: '示例事件3', description: '这是一个单章事件',
+              startTime: 1, duration: 1, layer: 2, color: 'rgb(168, 85, 247)', tags: ['#示例'], causalNext: [] }
         ];
 
         let days = [
-            { id: 1, name: '序章篇', startChapter: -5, endChapter: 0 },
-            { id: 2, name: '第1天', startChapter: 1, endChapter: 10 },
-            { id: 3, name: '第2天', startChapter: 11, endChapter: 20 },
-            { id: 4, name: '第3天', startChapter: 21, endChapter: 30 }
+            { id: 1, name: '第1天', startChapter: 1, endChapter: 10 }
         ];
 
         // 章节号格式化函数
