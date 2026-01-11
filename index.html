@@ -867,6 +867,86 @@
         .btn-sm { padding: 6px 12px; font-size: 14px; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-secondary { background: #6b7280; color: white; }
+        
+        /* 右下角同步状态指示器 */
+        .sync-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        .sync-indicator.show {
+            display: flex;
+        }
+        
+        .sync-indicator.syncing {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .sync-indicator.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .sync-indicator.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        /* 转圈动画 */
+        .sync-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e3f2fd;
+            border-top: 3px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .sync-indicator {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .sync-spinner {
+                width: 16px;
+                height: 16px;
+                border-width: 2px;
+            }
+        }
 
         /* 移动端适配 */
         @media (max-width: 768px) {
@@ -1708,14 +1788,16 @@
             
             <!-- Google Drive 云端同步（一键登录）-->
             <button class="btn" id="googleLoginBtn" onclick="handleGoogleLogin()" 
-                    style="background: white; color: #202124; border: 1px solid #dadce0; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 20px;">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-                    <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-                </svg>
-                <span style="font-size: 14px;">使用 Google 登录</span>
+                    style="background: white; color: #202124; border: 1px solid #dadce0; font-weight: 500; padding: 12px; width: 100%;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                        <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                        <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                    </svg>
+                    <span style="font-size: 14px; white-space: nowrap;">使用 Google 登录</span>
+                </div>
             </button>
             
             <!-- 视图切换按钮 -->
@@ -2412,6 +2494,50 @@
         
         // ============ Google Drive 云端同步系统 ============
         
+        // 同步状态指示器
+        function showSyncIndicator(status, message) {
+            const indicator = document.getElementById('syncIndicator');
+            const spinner = document.getElementById('syncSpinner');
+            const messageEl = document.getElementById('syncMessage');
+            
+            if (!indicator) return;
+            
+            // 移除所有状态类
+            indicator.classList.remove('syncing', 'success', 'error');
+            
+            // 设置新状态
+            if (status === 'syncing') {
+                indicator.classList.add('syncing');
+                spinner.style.display = 'block';
+                messageEl.textContent = message || '同步中...';
+            } else if (status === 'success') {
+                indicator.classList.add('success');
+                spinner.style.display = 'none';
+                messageEl.textContent = message || '✓ 同步成功';
+            } else if (status === 'error') {
+                indicator.classList.add('error');
+                spinner.style.display = 'none';
+                messageEl.textContent = message || '✗ 同步失败';
+            }
+            
+            // 显示指示器
+            indicator.classList.add('show');
+            
+            // 如果是成功或失败状态，3秒后自动隐藏
+            if (status === 'success' || status === 'error') {
+                setTimeout(() => {
+                    indicator.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        function hideSyncIndicator() {
+            const indicator = document.getElementById('syncIndicator');
+            if (indicator) {
+                indicator.classList.remove('show');
+            }
+        }
+        
         // Google Drive 配置（已内置，用户无需配置）
         const GOOGLE_CONFIG = {
             clientId: '728862396010-id8hgabpro91jeu7u3k6p39m3s7800do.apps.googleusercontent.com',
@@ -2478,32 +2604,40 @@
                 const btn = document.getElementById('googleLoginBtn');
                 if (btn) {
                     btn.innerHTML = `
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                            <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
-                            <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                            <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-                        </svg>
-                        <span style="font-size: 14px;">✓ 已登录</span>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+                                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                                <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                            </svg>
+                            <span style="font-size: 14px; white-space: nowrap;">✓ 已登录</span>
+                        </div>
                     `;
                     btn.style.background = '#e8f5e9';
                     btn.style.borderColor = '#4caf50';
                 }
                 
-                showToast('✅ 登录成功！正在同步到Google Drive...', 'success');
+                showToast('✅ 登录成功！正在从云端恢复数据...', 'success');
                 
-                // 登录成功后立即同步
-                await syncToGoogleDrive();
+                // 先从云端恢复数据
+                if (googleDriveFileId) {
+                    await loadFromGoogleDrive();
+                } else {
+                    // 如果云端没有文件，先同步当前数据到云端
+                    showToast('📤 正在创建云端备份...', 'info');
+                    await syncToGoogleDrive();
+                }
                 
-                // 自动启用自动同步
+                // 自动启用自动同步（每30秒）
                 if (!autoCloudSyncEnabled) {
                     autoCloudSyncEnabled = true;
                     cloudSyncInterval = setInterval(async () => {
                         if (accessToken) {
-                            await syncToGoogleDrive();
+                            await syncToGoogleDrive(true); // 静默同步
                         }
-                    }, 120000);
-                    console.log('✅ 自动同步已启用（每2分钟）');
+                    }, 30000); // 每30秒
+                    console.log('✅ 自动同步已启用（每30秒）');
                 }
             };
             
@@ -2526,12 +2660,15 @@
         }
         
         // 同步到Google Drive
-        async function syncToGoogleDrive() {
+        async function syncToGoogleDrive(silent = false) {
             if (!accessToken) {
-                showToast('⚠️ 请先登录Google账号', 'warning');
+                if (!silent) showToast('⚠️ 请先登录Google账号', 'warning');
                 loginGoogle();
                 return;
             }
+            
+            // 显示同步中状态
+            if (!silent) showSyncIndicator('syncing', '同步中...');
             
             const data = {
                 events: events,
@@ -2563,7 +2700,9 @@
                     );
                     
                     if (response.ok) {
-                        showToast('✅ 已同步到Google Drive！', 'success');
+                        if (!silent) {
+                            showSyncIndicator('success', '✓ 同步成功');
+                        }
                         console.log('✅ 同步成功', new Date().toLocaleTimeString());
                     } else {
                         throw new Error('更新失败：' + response.status);
@@ -2594,7 +2733,9 @@
                         const result = await response.json();
                         googleDriveFileId = result.id;
                         localStorage.setItem('googleDriveFileId', result.id);
-                        showToast('✅ 已创建并同步到Google Drive！', 'success');
+                        if (!silent) {
+                            showSyncIndicator('success', '✓ 同步成功');
+                        }
                         console.log('✅ 文件创建成功，ID:', result.id);
                     } else {
                         throw new Error('创建失败：' + response.status);
@@ -2602,7 +2743,9 @@
                 }
             } catch (error) {
                 console.error('❌ 同步失败:', error);
-                showToast('❌ 同步失败：' + error.message, 'error');
+                if (!silent) {
+                    showSyncIndicator('error', '✗ 同步失败');
+                }
                 accessToken = null; // 清除token，下次重新登录
             }
         }
@@ -2612,12 +2755,13 @@
             if (!accessToken) {
                 showToast('⚠️ 请先登录Google账号', 'warning');
                 loginGoogle();
-                return;
+                return false;
             }
             
             if (!googleDriveFileId) {
-                showToast('⚠️ 没有找到云端文件，请先同步一次', 'warning');
-                return;
+                // 第一次使用，云端还没有文件
+                console.log('ℹ️ 云端还没有备份文件');
+                return false;
             }
             
             try {
@@ -2644,15 +2788,24 @@
                     render();
                     renderNovelChapterList();
                     
-                    showToast('✅ 从Google Drive恢复成功！', 'success');
+                    showToast('✅ 从云端恢复成功！', 'success');
                     console.log('✅ 数据已恢复', data.savedAt);
+                    return true;
+                } else if (response.status === 404) {
+                    // 文件不存在，可能已被删除
+                    console.log('ℹ️ 云端文件不存在');
+                    googleDriveFileId = null;
+                    localStorage.removeItem('googleDriveFileId');
+                    return false;
                 } else {
                     throw new Error('读取失败：' + response.status);
                 }
             } catch (error) {
                 console.error('❌ 恢复失败:', error);
-                showToast('❌ 恢复失败：' + error.message, 'error');
-                accessToken = null;
+                showToast('❌ 从云端恢复失败，使用本地数据', 'warning');
+                return false;
+            }
+        }
             }
         }
         
@@ -2671,12 +2824,12 @@
                     return;
                 }
                 
-                // 每2分钟自动同步
+                // 每30秒自动同步
                 cloudSyncInterval = setInterval(async () => {
                     if (accessToken) {
-                        await syncToGoogleDrive();
+                        await syncToGoogleDrive(true); // 静默同步
                     }
-                }, 120000);
+                }, 30000); // 每30秒
                 
                 const btn = document.getElementById('autoSyncBtn');
                 if (btn) {
@@ -2684,7 +2837,7 @@
                     btn.innerHTML = '<span class="btn-icon">⚡</span><span class="btn-text"> 自动同步中</span>';
                 }
                 
-                showToast('✅ 已启用自动同步（每2分钟）', 'success');
+                showToast('✅ 已启用自动同步（每30秒）', 'success');
             } else {
                 if (cloudSyncInterval) {
                     clearInterval(cloudSyncInterval);
@@ -6852,6 +7005,12 @@ function deleteSelectedEvents() {
     <button id="createEventFromText" class="btn btn-sm btn-primary" style="padding: 6px 12px; font-size: 13px; white-space: nowrap;">
         📌 创建事件
     </button>
+</div>
+
+<!-- 右下角同步状态指示器 -->
+<div id="syncIndicator" class="sync-indicator">
+    <div class="sync-spinner" id="syncSpinner" style="display: none;"></div>
+    <span id="syncMessage">同步中...</span>
 </div>
 
 </body>
