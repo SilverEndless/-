@@ -872,16 +872,17 @@
         .sync-indicator {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            right: 50%;
+            transform: translateX(150px); /* 在提示右边 */
             background: white;
             border-radius: 12px;
-            padding: 12px 20px;
+            padding: 10px 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             display: none;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             z-index: 9999;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #1f2937;
             animation: slideInUp 0.3s ease-out;
@@ -1843,6 +1844,11 @@
                     <button class="btn btn-primary btn-sm" id="editModeBtn" onclick="toggleEditMode()"><span class="btn-icon">✎</span><span class="btn-text"> 编辑</span></button>
 
                     <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;"><span class="btn-icon">➕</span><span class="btn-text"> 添加事件</span></button>
+                    
+                    <!-- 测试同步指示器按钮 -->
+                    <button class="btn btn-sm" onclick="testSyncIndicator()" style="background: #6366f1; color: white; margin-left: 8px;">
+                        <span class="btn-icon">🔔</span><span class="btn-text"> 测试同步</span>
+                    </button>
                 </div>
 
                 <div class="timeline-canvas" id="timelineCanvas">
@@ -2536,6 +2542,17 @@
             if (indicator) {
                 indicator.classList.remove('show');
             }
+        }
+        
+        // 测试同步指示器（用于演示）
+        function testSyncIndicator() {
+            // 显示同步中
+            showSyncIndicator('syncing', '同步中...');
+            
+            // 2秒后显示成功
+            setTimeout(() => {
+                showSyncIndicator('success', '✓ 同步成功');
+            }, 2000);
         }
         
         // Google Drive 配置（已内置，用户无需配置）
