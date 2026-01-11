@@ -2719,6 +2719,11 @@
                     recycleBin = data.recycleBin || { chapters: [], volumes: [] };
                     
                     autoSave();
+                    
+                    // 切换到时间轴视图
+                    showTimeline();
+                    
+                    // 强制重新渲染
                     render();
                     renderNovelChapterList();
                     
@@ -2761,6 +2766,11 @@
                         recycleBin = data.recycleBin || { chapters: [], volumes: [] };
                         
                         autoSave();
+                        
+                        // 切换到时间轴视图
+                        showTimeline();
+                        
+                        // 强制重新渲染时间轴
                         render();
                         renderNovelChapterList();
                         
@@ -2808,6 +2818,11 @@
                             recycleBin = data.recycleBin || { chapters: [], volumes: [] };
                             
                             autoSave();
+                            
+                            // 切换到时间轴视图
+                            showTimeline();
+                            
+                            // 强制重新渲染时间轴
                             render();
                             renderNovelChapterList();
                             
