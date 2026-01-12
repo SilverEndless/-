@@ -272,8 +272,6 @@
         }
 
         .layer-divider {
-            position: sticky;
-            top: 0;
             height: 50px;
             background: linear-gradient(90deg, #a855f7 0%, #8b5cf6 20%, #6366f1 40%, #3b82f6 60%, #0ea5e9 80%, #06b6d4 100%);
             display: flex;
@@ -287,6 +285,17 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.6), 0 0 30px rgba(139, 92, 246, 0.5);
             border-top: 3px solid #e9d5ff;
             border-bottom: 3px solid #bae6fd;
+        }
+        
+        /* 动态切换的sticky模式 */
+        .layer-divider.sticky-top {
+            position: sticky;
+            top: 0;
+        }
+        
+        .layer-divider.sticky-bottom {
+            position: sticky;
+            bottom: 0;
         }
 
         /* 上层：章节刻度 */
@@ -2442,6 +2451,9 @@
             loadBookData();
             render();
             console.log('📋 初始化完成，当前书籍：'+getCurrentBook().name);
+            
+            // 检查并自动登录Google Drive
+            setTimeout(autoLoginGoogle, 1000);
         });
         
         // 页面关闭前保存到localStorage作为临时缓存
@@ -2498,6 +2510,67 @@
         let googleDriveFileId = localStorage.getItem('googleDriveFileId') || null;
         
         // 加载Google API
+        // 自动登录Google Drive
+        async function autoLoginGoogle() {
+            try {
+                const savedToken = localStorage.getItem('googleAccessToken');
+                if (!savedToken) {
+                    console.log('📝 未找到保存的Token');
+                    return;
+                }
+                
+                const tokenData = JSON.parse(savedToken);
+                
+                // 检查是否过期
+                if (Date.now() >= tokenData.expiresAt) {
+                    console.log('⏰ Token已过期');
+                    localStorage.removeItem('googleAccessToken');
+                    return;
+                }
+                
+                // 恢复token
+                accessToken = tokenData.token;
+                console.log('✅ 自动登录成功');
+                
+                // 更新按钮状态
+                const btn = document.getElementById('googleLoginBtn');
+                if (btn) {
+                    btn.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;">
+                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink: 0;">
+                                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.18L12.05 13.56c-.806.54-1.836.86-3.047.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                                <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+                            </svg>
+                            <span style="font-size: 14px; white-space: nowrap;">✓ 已登录</span>
+                        </div>
+                    `;
+                    btn.style.background = '#e8f5e9';
+                    btn.style.borderColor = '#4caf50';
+                }
+                
+                // 尝试从云端加载数据
+                const loaded = await tryLoadFromGoogleDrive();
+                if (loaded) {
+                    showToast('✅ 已从云端恢复数据', 'success');
+                    
+                    // 启用自动同步
+                    if (!autoCloudSyncEnabled) {
+                        autoCloudSyncEnabled = true;
+                        cloudSyncInterval = setInterval(async () => {
+                            if (accessToken) {
+                                await syncToGoogleDrive();
+                            }
+                        }, 120000);
+                        console.log('✅ 自动同步已启用');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ 自动登录失败:', error);
+            }
+        }
+        
         function loadGoogleAPI() {
             gapi.load('client', async () => {
                 try {
@@ -2544,6 +2617,18 @@
                 }
                 
                 accessToken = response.access_token;
+                
+                // 保存token到localStorage
+                try {
+                    const tokenData = {
+                        token: accessToken,
+                        expiresAt: Date.now() + 3600000 // 1小时后过期
+                    };
+                    localStorage.setItem('googleAccessToken', JSON.stringify(tokenData));
+                    console.log('✅ Token已保存');
+                } catch (e) {
+                    console.error('❌ 保存Token失败:', e);
+                }
                 
                 // 更新按钮状态
                 const btn = document.getElementById('googleLoginBtn');
@@ -3669,7 +3754,7 @@ function deleteSelectedEvents() {
                 </div>
 
                 <!-- 分隔线（三层刻度）-->
-                <div class="layer-divider" style="min-width: ${timelineWidth}px;">
+                <div class="layer-divider sticky-top" style="min-width: ${timelineWidth}px;">
                     <!-- 上层：章节刻度 -->
                     <div class="top-scale">
                         ${(() => {
@@ -3786,6 +3871,42 @@ function deleteSelectedEvents() {
             setTimeout(() => {
                 adjustTitleFontSizes();
             }, 100);
+            
+            // 动态切换分隔线的sticky方向
+            const timelineCanvas = document.getElementById('timelineCanvas');
+            const divider = document.querySelector('.layer-divider');
+            
+            if (timelineCanvas && divider) {
+                // 移除旧的监听器
+                if (timelineCanvas._dividerSwitchHandler) {
+                    timelineCanvas.removeEventListener('scroll', timelineCanvas._dividerSwitchHandler);
+                }
+                
+                timelineCanvas._dividerSwitchHandler = () => {
+                    const scrollTop = timelineCanvas.scrollTop;
+                    const dividerTop = divider.offsetTop;
+                    const containerHeight = timelineCanvas.clientHeight;
+                    
+                    // 判断是在查看暗层还是表层
+                    // 如果滚动位置小于分隔线位置的一半，说明在查看暗层
+                    if (scrollTop < dividerTop - containerHeight / 2) {
+                        // 查看暗层 → sticky bottom
+                        divider.classList.remove('sticky-top');
+                        divider.classList.add('sticky-bottom');
+                    } else {
+                        // 查看表层 → sticky top
+                        divider.classList.remove('sticky-bottom');
+                        divider.classList.add('sticky-top');
+                    }
+                };
+                
+                timelineCanvas.addEventListener('scroll', timelineCanvas._dividerSwitchHandler);
+                
+                // 初始检查
+                setTimeout(() => {
+                    timelineCanvas._dividerSwitchHandler();
+                }, 100);
+            }
         }
 
         // 动态调整标题字体大小
