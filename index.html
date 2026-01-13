@@ -401,6 +401,7 @@
             border: 3px solid rgba(255, 255, 255, 0.8);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             box-shadow: 0 2px 10px rgba(14, 165, 233, 0.6);
+            top: 55px; /* 固定在时间轴下方（时间轴50px + 5px间距），永远不进入时间轴区域 */
         }
 
         .event-block {
@@ -2397,10 +2398,10 @@
             const data = { books, currentBookId, savedAt: new Date().toISOString() };
             try {
                 localStorage.setItem('storyOutlineData', JSON.stringify(data));
-                console.log('✅ 自动保存成功', new Date().toLocaleTimeString());
+                // 静默保存到本地，不显示提示
             } catch (e) {
-                console.error('❌ 自动保存失败:', e);
-                showToast('⚠️ 自动保存失败，数据可能过大', 'warning');
+                console.error('❌ 本地保存失败:', e);
+                // 本地保存失败不显示提示，因为会自动云端同步
             }
         }
         
@@ -2426,8 +2427,8 @@
             return false;
         }
         
-        // 导出到云端（生成下载文件）
-        // 定期自动保存（每30秒）- 只保存到localStorage作为临时缓存
+        // 本地自动保存（每30秒）- 作为应急备份，防止浏览器崩溃时数据丢失
+        // 主要保存位置是云端（每1分钟自动同步）
         setInterval(() => {
             autoSave();
         }, 30000);
@@ -2448,17 +2449,51 @@
         // 页面加载时检查版本
         window.addEventListener('DOMContentLoaded', () => {
             checkAndClearOldData();
-            loadBookData();
-            render();
-            console.log('📋 初始化完成，当前书籍：'+getCurrentBook().name);
             
-            // 检查并自动登录Google Drive
-            setTimeout(autoLoginGoogle, 1000);
+            // 不立即加载数据，先尝试自动登录
+            autoLoginAndRender();
         });
         
         // 页面关闭前保存到localStorage作为临时缓存
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', (e) => {
+            // 先保存到本地
             autoSave();
+            
+            // 如果已登录Google Drive，同步到云端
+            if (accessToken && googleDriveFileId) {
+                // 准备数据
+                saveBookData();
+                const data = {
+                    books: books,
+                    currentBookId: currentBookId,
+                    savedAt: new Date().toISOString(),
+                    version: '2.0-multibook'
+                };
+                const content = JSON.stringify(data);
+                
+                // 使用 keepalive fetch 确保请求在页面关闭后仍能发送
+                fetch(
+                    `https://www.googleapis.com/upload/drive/v3/files/${googleDriveFileId}?uploadType=media`,
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: content,
+                        keepalive: true // 关键：确保页面关闭后请求仍能完成
+                    }
+                ).then(() => {
+                    console.log('✅ 关闭前云端保存成功');
+                }).catch((error) => {
+                    console.error('❌ 关闭前云端保存失败:', error);
+                });
+                
+                // 显示提示，让用户确认
+                e.preventDefault();
+                e.returnValue = '正在上传数据到云端...'; // 触发浏览器提示
+                return '正在上传数据到云端...';
+            }
         });
         
         // ============ 自动保存和云端同步系统结束 ============
@@ -2510,13 +2545,27 @@
         let googleDriveFileId = localStorage.getItem('googleDriveFileId') || null;
         
         // 加载Google API
+        // 页面加载时先尝试自动登录，再加载数据
+        async function autoLoginAndRender() {
+            // 尝试自动登录
+            const loginSuccess = await autoLoginGoogle();
+            
+            if (!loginSuccess) {
+                // 自动登录失败，从localStorage加载
+                loadBookData();
+                render();
+                console.log('📋 使用本地数据初始化');
+            }
+            // 如果登录成功，autoLoginGoogle内部已经调用了loadBookData和render
+        }
+        
         // 自动登录Google Drive
         async function autoLoginGoogle() {
             try {
                 const savedToken = localStorage.getItem('googleAccessToken');
                 if (!savedToken) {
                     console.log('📝 未找到保存的Token');
-                    return;
+                    return false;
                 }
                 
                 const tokenData = JSON.parse(savedToken);
@@ -2525,7 +2574,7 @@
                 if (Date.now() >= tokenData.expiresAt) {
                     console.log('⏰ Token已过期');
                     localStorage.removeItem('googleAccessToken');
-                    return;
+                    return false;
                 }
                 
                 // 恢复token
@@ -2562,12 +2611,15 @@
                             if (accessToken) {
                                 await syncToGoogleDrive();
                             }
-                        }, 120000);
+                        }, 60000);
                         console.log('✅ 自动同步已启用');
                     }
+                    return true;
                 }
+                return false;
             } catch (error) {
                 console.error('❌ 自动登录失败:', error);
+                return false;
             }
         }
         
@@ -2666,7 +2718,7 @@
                         if (accessToken) {
                             await syncToGoogleDrive();
                         }
-                    }, 120000);
+                    }, 60000);
                     console.log('✅ 自动同步已启用（每2分钟）');
                 }
             };
@@ -2728,7 +2780,8 @@
                     
                     if (response.ok) {
                         showSyncIndicator('success', '✓ 同步成功');
-                        console.log('✅ 同步成功', new Date().toLocaleTimeString());
+                        showToast('✅ 已保存到云端', 'success');
+                        console.log('✅ 云端同步成功', new Date().toLocaleTimeString());
                     } else {
                         throw new Error('更新失败：' + response.status);
                     }
@@ -2759,7 +2812,8 @@
                         googleDriveFileId = result.id;
                         localStorage.setItem('googleDriveFileId', result.id);
                         showSyncIndicator('success', '✓ 同步成功');
-                        console.log('✅ 文件创建成功，ID:', result.id);
+                        showToast('✅ 已保存到云端', 'success');
+                        console.log('✅ 云端文件创建成功，ID:', result.id);
                     } else {
                         throw new Error('创建失败：' + response.status);
                     }
@@ -2945,7 +2999,7 @@
                     if (accessToken) {
                         await syncToGoogleDrive();
                     }
-                }, 120000);
+                }, 60000);
                 
                 const btn = document.getElementById('autoSyncBtn');
                 if (btn) {
@@ -3690,6 +3744,7 @@ function deleteSelectedEvents() {
                     top = (maxHiddenLayer - event.layer) * 55 + 20;
                 } else {
                     // 表层：从顶部往下，layer 0在顶部
+                    // 初始位置，后续会由JavaScript动态调整避开标签
                     top = event.layer * 55 + 20;
                 }
 
@@ -3905,6 +3960,167 @@ function deleteSelectedEvents() {
                 // 初始检查
                 setTimeout(() => {
                     timelineCanvas._dividerSwitchHandler();
+                }, 100);
+            }
+            
+            // 动态推开表层事件，避免和标签重叠
+            const surfaceLabel = document.getElementById('surfaceLabel');
+            if (timelineCanvas && surfaceLabel) {
+                // 移除旧的监听器
+                if (timelineCanvas._avoidLabelHandler) {
+                    timelineCanvas.removeEventListener('scroll', timelineCanvas._avoidLabelHandler);
+                }
+                
+                timelineCanvas._avoidLabelHandler = () => {
+                    // 标签sticky top: 55px，高度约35px
+                    const labelStickyTop = 55;
+                    const labelHeight = 35;
+                    
+                    // 计算标签在表层容器中的逻辑位置
+                    const surfaceArea = document.querySelector('.surface-layer-area');
+                    if (!surfaceArea) return;
+                    
+                    const surfaceTop = surfaceArea.offsetTop;
+                    const scrollTop = timelineCanvas.scrollTop;
+                    
+                    // 标签在表层容器中的逻辑位置
+                    const labelLogicalTop = scrollTop - surfaceTop + labelStickyTop;
+                    const labelLogicalBottom = labelLogicalTop + labelHeight;
+                    
+                    // 获取所有表层事件
+                    const surfaceEvents = surfaceArea.querySelectorAll('[data-layer-type="surface"]');
+                    
+                    // 找出最小的重叠事件top，计算需要推开的距离
+                    let minOverlapTop = Infinity;
+                    let needsPush = false;
+                    
+                    surfaceEvents.forEach(event => {
+                        const originalTop = parseFloat(event.dataset.originalTop || event.style.top);
+                        if (!event.dataset.originalTop) {
+                            event.dataset.originalTop = event.style.top;
+                        }
+                        
+                        const eventHeight = 45;
+                        const eventBottom = originalTop + eventHeight;
+                        
+                        // 检查是否和标签重叠
+                        if (originalTop < labelLogicalBottom && eventBottom > labelLogicalTop) {
+                            needsPush = true;
+                            minOverlapTop = Math.min(minOverlapTop, originalTop);
+                        }
+                    });
+                    
+                    if (needsPush && minOverlapTop < Infinity) {
+                        // 计算需要推开的距离：从最小重叠位置推到标签下方
+                        const pushDistance = labelLogicalBottom + 5 - minOverlapTop;
+                        
+                        // 关键改进：所有在minOverlapTop位置及以下的事件，全部往下推
+                        surfaceEvents.forEach(event => {
+                            const originalTop = parseFloat(event.dataset.originalTop);
+                            
+                            // 如果事件原本位置在被推开的位置或下方，全部往下推
+                            if (originalTop >= minOverlapTop) {
+                                event.style.top = (originalTop + pushDistance) + 'px';
+                            } else {
+                                // 在推开位置上方，保持原位
+                                event.style.top = originalTop + 'px';
+                            }
+                        });
+                    } else {
+                        // 没有重叠，所有事件恢复原位置
+                        surfaceEvents.forEach(event => {
+                            const originalTop = parseFloat(event.dataset.originalTop);
+                            event.style.top = originalTop + 'px';
+                        });
+                    }
+                };
+                
+                timelineCanvas.addEventListener('scroll', timelineCanvas._avoidLabelHandler);
+                
+                // 初始调整
+                setTimeout(() => {
+                    timelineCanvas._avoidLabelHandler();
+                }, 100);
+            }
+            
+            // 动态推开暗层事件，避免和标签重叠
+            const hiddenLabel = document.getElementById('hiddenLabel');
+            if (timelineCanvas && hiddenLabel) {
+                // 移除旧的监听器
+                if (timelineCanvas._avoidHiddenLabelHandler) {
+                    timelineCanvas.removeEventListener('scroll', timelineCanvas._avoidHiddenLabelHandler);
+                }
+                
+                timelineCanvas._avoidHiddenLabelHandler = () => {
+                    // 标签sticky top: 5px，高度约35px
+                    const labelStickyTop = 5;
+                    const labelHeight = 35;
+                    
+                    // 计算标签在暗层容器中的逻辑位置
+                    const hiddenArea = document.querySelector('.hidden-layer-area');
+                    if (!hiddenArea) return;
+                    
+                    const hiddenTop = hiddenArea.offsetTop;
+                    const scrollTop = timelineCanvas.scrollTop;
+                    
+                    // 标签在暗层容器中的逻辑位置
+                    const labelLogicalTop = scrollTop - hiddenTop + labelStickyTop;
+                    const labelLogicalBottom = labelLogicalTop + labelHeight;
+                    
+                    // 获取所有暗层事件
+                    const hiddenEvents = hiddenArea.querySelectorAll('[data-layer-type="hidden"]');
+                    
+                    // 找出最大的重叠事件bottom（暗层是反向的，要找最下面的重叠事件）
+                    let maxOverlapBottom = -Infinity;
+                    let needsPush = false;
+                    
+                    hiddenEvents.forEach(event => {
+                        const originalTop = parseFloat(event.dataset.originalTop || event.style.top);
+                        if (!event.dataset.originalTop) {
+                            event.dataset.originalTop = event.style.top;
+                        }
+                        
+                        const eventHeight = 45;
+                        const eventBottom = originalTop + eventHeight;
+                        
+                        // 检查是否和标签重叠
+                        if (originalTop < labelLogicalBottom && eventBottom > labelLogicalTop) {
+                            needsPush = true;
+                            maxOverlapBottom = Math.max(maxOverlapBottom, eventBottom);
+                        }
+                    });
+                    
+                    if (needsPush && maxOverlapBottom > -Infinity) {
+                        // 计算需要往上推的距离
+                        const pushDistance = maxOverlapBottom - labelLogicalTop + 5;
+                        
+                        // 暗层：所有在maxOverlapBottom位置及以上的事件，全部往上推
+                        hiddenEvents.forEach(event => {
+                            const originalTop = parseFloat(event.dataset.originalTop);
+                            const eventBottom = originalTop + 45;
+                            
+                            if (eventBottom <= maxOverlapBottom) {
+                                // 在重叠位置或上方，往上推（top减小）
+                                event.style.top = (originalTop - pushDistance) + 'px';
+                            } else {
+                                // 在重叠位置下方，保持原位
+                                event.style.top = originalTop + 'px';
+                            }
+                        });
+                    } else {
+                        // 没有重叠，所有事件恢复原位置
+                        hiddenEvents.forEach(event => {
+                            const originalTop = parseFloat(event.dataset.originalTop);
+                            event.style.top = originalTop + 'px';
+                        });
+                    }
+                };
+                
+                timelineCanvas.addEventListener('scroll', timelineCanvas._avoidHiddenLabelHandler);
+                
+                // 初始调整
+                setTimeout(() => {
+                    timelineCanvas._avoidHiddenLabelHandler();
                 }, 100);
             }
         }
