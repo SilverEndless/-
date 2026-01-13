@@ -550,7 +550,7 @@
         /* Toast通知样式 */
         .toast {
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             background: #1f2937;
             color: white;
@@ -562,7 +562,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            animation: slideIn 0.3s ease-out;
+            animation: slideInBottom 0.3s ease-out;
             max-width: 400px;
         }
         .toast.success {
@@ -574,23 +574,26 @@
         .toast.info {
             background: #3b82f6;
         }
-        @keyframes slideIn {
+        .toast.warning {
+            background: #f59e0b;
+        }
+        @keyframes slideInBottom {
             from {
-                transform: translateX(400px);
+                transform: translateY(100px);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
         @keyframes slideOut {
             from {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
             to {
-                transform: translateX(400px);
+                transform: translateY(100px);
                 opacity: 0;
             }
         }
@@ -3087,11 +3090,55 @@
             novelVolumes = book.data.novelVolumes || [{ id: 1, name: '第一卷', chapters: [], collapsed: false }];
             recycleBin = book.data.recycleBin || { chapters: [], volumes: [] };
             document.getElementById('currentBookName').textContent = book.name;
+            
+            // 加载颜色设置
+            const colorSettings = book.data.colorSettings || {};
+            const bgColorInput = document.getElementById('bgColor');
+            const bgImageInput = document.getElementById('bgImage');
+            const hiddenColorInput = document.getElementById('hiddenColor');
+            const hiddenImageInput = document.getElementById('hiddenImage');
+            const surfaceColorInput = document.getElementById('surfaceColor');
+            const surfaceImageInput = document.getElementById('surfaceImage');
+            const gridColorInput = document.getElementById('gridColor');
+            const dividerBgColorInput = document.getElementById('dividerBgColor');
+            
+            if (bgColorInput && colorSettings.bgColor) bgColorInput.value = colorSettings.bgColor;
+            if (bgImageInput && colorSettings.bgImage !== undefined) bgImageInput.value = colorSettings.bgImage;
+            if (hiddenColorInput && colorSettings.hiddenColor) hiddenColorInput.value = colorSettings.hiddenColor;
+            if (hiddenImageInput && colorSettings.hiddenImage !== undefined) hiddenImageInput.value = colorSettings.hiddenImage;
+            if (surfaceColorInput && colorSettings.surfaceColor) surfaceColorInput.value = colorSettings.surfaceColor;
+            if (surfaceImageInput && colorSettings.surfaceImage !== undefined) surfaceImageInput.value = colorSettings.surfaceImage;
+            if (gridColorInput && colorSettings.gridColor) gridColorInput.value = colorSettings.gridColor;
+            if (dividerBgColorInput && colorSettings.dividerBgColor) dividerBgColorInput.value = colorSettings.dividerBgColor;
+            
+            // 应用颜色设置
+            applyColors();
         }
         
         function saveBookData() {
             const book = getCurrentBook();
-            book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin };
+            
+            // 保存颜色设置
+            const colorSettings = {};
+            const bgColorInput = document.getElementById('bgColor');
+            const bgImageInput = document.getElementById('bgImage');
+            const hiddenColorInput = document.getElementById('hiddenColor');
+            const hiddenImageInput = document.getElementById('hiddenImage');
+            const surfaceColorInput = document.getElementById('surfaceColor');
+            const surfaceImageInput = document.getElementById('surfaceImage');
+            const gridColorInput = document.getElementById('gridColor');
+            const dividerBgColorInput = document.getElementById('dividerBgColor');
+            
+            if (bgColorInput) colorSettings.bgColor = bgColorInput.value;
+            if (bgImageInput) colorSettings.bgImage = bgImageInput.value;
+            if (hiddenColorInput) colorSettings.hiddenColor = hiddenColorInput.value;
+            if (hiddenImageInput) colorSettings.hiddenImage = hiddenImageInput.value;
+            if (surfaceColorInput) colorSettings.surfaceColor = surfaceColorInput.value;
+            if (surfaceImageInput) colorSettings.surfaceImage = surfaceImageInput.value;
+            if (gridColorInput) colorSettings.gridColor = gridColorInput.value;
+            if (dividerBgColorInput) colorSettings.dividerBgColor = dividerBgColorInput.value;
+            
+            book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings };
             book.lastEditedAt = new Date().toISOString();
         }
         
