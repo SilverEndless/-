@@ -2550,16 +2550,35 @@
         // 加载Google API
         // 页面加载时先尝试自动登录，再加载数据
         async function autoLoginAndRender() {
+            console.log('🚀 开始初始化...');
+            
+            // 先尝试从localStorage加载数据（不管是否登录，都先恢复本地数据）
+            const savedData = localStorage.getItem('storyOutlineData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    if (data.version === '2.0-multibook' && data.books) {
+                        books = data.books;
+                        currentBookId = data.currentBookId || books[0].id;
+                        console.log('📦 已加载本地数据');
+                    }
+                } catch (e) {
+                    console.error('❌ 加载本地数据失败:', e);
+                }
+            }
+            
             // 尝试自动登录
             const loginSuccess = await autoLoginGoogle();
             
             if (!loginSuccess) {
-                // 自动登录失败，从localStorage加载
+                // 自动登录失败，显示本地数据
+                console.log('📋 使用本地数据初始化');
                 loadBookData();
                 render();
-                console.log('📋 使用本地数据初始化');
+                renderNovelChapterList();
+            } else {
+                console.log('☁️ 自动登录成功，已加载云端数据');
             }
-            // 如果登录成功，autoLoginGoogle内部已经调用了loadBookData和render
         }
         
         // 自动登录Google Drive
@@ -2582,7 +2601,8 @@
                 
                 // 恢复token
                 accessToken = tokenData.token;
-                console.log('✅ 自动登录成功');
+                console.log('✅ 自动登录成功，Token有效期至:', new Date(tokenData.expiresAt).toLocaleString());
+                console.log('🔑 Access Token:', accessToken.substring(0, 20) + '...');
                 
                 // 更新按钮状态
                 const btn = document.getElementById('googleLoginBtn');
@@ -2618,8 +2638,25 @@
                         console.log('✅ 自动同步已启用');
                     }
                     return true;
+                } else {
+                    // 云端加载失败，使用本地数据
+                    console.log('⚠️ 云端加载失败，使用本地数据');
+                    loadBookData();
+                    render();
+                    renderNovelChapterList();
+                    
+                    // 仍然启用自动同步
+                    if (!autoCloudSyncEnabled) {
+                        autoCloudSyncEnabled = true;
+                        cloudSyncInterval = setInterval(async () => {
+                            if (accessToken) {
+                                await syncToGoogleDrive();
+                            }
+                        }, 60000);
+                        console.log('✅ 自动同步已启用');
+                    }
+                    return true; // 虽然云端加载失败，但登录是成功的
                 }
-                return false;
             } catch (error) {
                 console.error('❌ 自动登录失败:', error);
                 return false;
@@ -2677,7 +2714,7 @@
                 try {
                     const tokenData = {
                         token: accessToken,
-                        expiresAt: Date.now() + 3600000 // 1小时后过期
+                        expiresAt: Date.now() + 3000000 // 50分钟后过期（Google token实际1小时有效）
                     };
                     localStorage.setItem('googleAccessToken', JSON.stringify(tokenData));
                     console.log('✅ Token已保存');
@@ -3091,54 +3128,81 @@
             recycleBin = book.data.recycleBin || { chapters: [], volumes: [] };
             document.getElementById('currentBookName').textContent = book.name;
             
-            // 加载颜色设置
+            // 加载并应用颜色设置
             const colorSettings = book.data.colorSettings || {};
-            const bgColorInput = document.getElementById('bgColor');
-            const bgImageInput = document.getElementById('bgImage');
-            const hiddenColorInput = document.getElementById('hiddenColor');
-            const hiddenImageInput = document.getElementById('hiddenImage');
-            const surfaceColorInput = document.getElementById('surfaceColor');
-            const surfaceImageInput = document.getElementById('surfaceImage');
-            const gridColorInput = document.getElementById('gridColor');
-            const dividerBgColorInput = document.getElementById('dividerBgColor');
+            console.log('📐 加载颜色设置:', colorSettings);
             
-            if (bgColorInput && colorSettings.bgColor) bgColorInput.value = colorSettings.bgColor;
-            if (bgImageInput && colorSettings.bgImage !== undefined) bgImageInput.value = colorSettings.bgImage;
-            if (hiddenColorInput && colorSettings.hiddenColor) hiddenColorInput.value = colorSettings.hiddenColor;
-            if (hiddenImageInput && colorSettings.hiddenImage !== undefined) hiddenImageInput.value = colorSettings.hiddenImage;
-            if (surfaceColorInput && colorSettings.surfaceColor) surfaceColorInput.value = colorSettings.surfaceColor;
-            if (surfaceImageInput && colorSettings.surfaceImage !== undefined) surfaceImageInput.value = colorSettings.surfaceImage;
-            if (gridColorInput && colorSettings.gridColor) gridColorInput.value = colorSettings.gridColor;
-            if (dividerBgColorInput && colorSettings.dividerBgColor) dividerBgColorInput.value = colorSettings.dividerBgColor;
+            // 如果有保存的颜色，直接应用（不依赖输入框）
+            if (colorSettings.bgColor || colorSettings.hiddenColor || colorSettings.surfaceColor) {
+                console.log('✅ 应用保存的颜色');
+                applyColorsDirectly(
+                    colorSettings.bgColor || '#111827',
+                    colorSettings.bgImage || '',
+                    colorSettings.hiddenColor || '#1e1b4b',
+                    colorSettings.hiddenImage || '',
+                    colorSettings.surfaceColor || '#0c4a6e',
+                    colorSettings.surfaceImage || '',
+                    colorSettings.gridColor || '#8b5cf6',
+                    0.3,
+                    colorSettings.dividerBgColor || '#8b5cf6'
+                );
+            } else {
+                console.log('ℹ️ 没有保存的颜色，使用默认颜色');
+            }
             
-            // 应用颜色设置
-            applyColors();
+            // 如果输入框存在，也更新输入框的值
+            setTimeout(() => {
+                const bgColorInput = document.getElementById('bgColor');
+                const bgImageInput = document.getElementById('bgImage');
+                const hiddenColorInput = document.getElementById('hiddenColor');
+                const hiddenImageInput = document.getElementById('hiddenImage');
+                const surfaceColorInput = document.getElementById('surfaceColor');
+                const surfaceImageInput = document.getElementById('surfaceImage');
+                const gridColorInput = document.getElementById('gridColor');
+                const dividerBgColorInput = document.getElementById('dividerBgColor');
+                
+                if (bgColorInput && colorSettings.bgColor) bgColorInput.value = colorSettings.bgColor;
+                if (bgImageInput && colorSettings.bgImage !== undefined) bgImageInput.value = colorSettings.bgImage;
+                if (hiddenColorInput && colorSettings.hiddenColor) hiddenColorInput.value = colorSettings.hiddenColor;
+                if (hiddenImageInput && colorSettings.hiddenImage !== undefined) hiddenImageInput.value = colorSettings.hiddenImage;
+                if (surfaceColorInput && colorSettings.surfaceColor) surfaceColorInput.value = colorSettings.surfaceColor;
+                if (surfaceImageInput && colorSettings.surfaceImage !== undefined) surfaceImageInput.value = colorSettings.surfaceImage;
+                if (gridColorInput && colorSettings.gridColor) gridColorInput.value = colorSettings.gridColor;
+                if (dividerBgColorInput && colorSettings.dividerBgColor) dividerBgColorInput.value = colorSettings.dividerBgColor;
+            }, 100);
         }
         
         function saveBookData() {
             const book = getCurrentBook();
             
-            // 保存颜色设置
-            const colorSettings = {};
+            // 保存颜色设置（只在输入框存在时才更新）
             const bgColorInput = document.getElementById('bgColor');
-            const bgImageInput = document.getElementById('bgImage');
-            const hiddenColorInput = document.getElementById('hiddenColor');
-            const hiddenImageInput = document.getElementById('hiddenImage');
-            const surfaceColorInput = document.getElementById('surfaceColor');
-            const surfaceImageInput = document.getElementById('surfaceImage');
-            const gridColorInput = document.getElementById('gridColor');
-            const dividerBgColorInput = document.getElementById('dividerBgColor');
+            if (bgColorInput) {
+                // 输入框存在，保存颜色设置
+                const colorSettings = {};
+                const bgImageInput = document.getElementById('bgImage');
+                const hiddenColorInput = document.getElementById('hiddenColor');
+                const hiddenImageInput = document.getElementById('hiddenImage');
+                const surfaceColorInput = document.getElementById('surfaceColor');
+                const surfaceImageInput = document.getElementById('surfaceImage');
+                const gridColorInput = document.getElementById('gridColor');
+                const dividerBgColorInput = document.getElementById('dividerBgColor');
+                
+                if (bgColorInput) colorSettings.bgColor = bgColorInput.value;
+                if (bgImageInput) colorSettings.bgImage = bgImageInput.value;
+                if (hiddenColorInput) colorSettings.hiddenColor = hiddenColorInput.value;
+                if (hiddenImageInput) colorSettings.hiddenImage = hiddenImageInput.value;
+                if (surfaceColorInput) colorSettings.surfaceColor = surfaceColorInput.value;
+                if (surfaceImageInput) colorSettings.surfaceImage = surfaceImageInput.value;
+                if (gridColorInput) colorSettings.gridColor = gridColorInput.value;
+                if (dividerBgColorInput) colorSettings.dividerBgColor = dividerBgColorInput.value;
+                
+                book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings };
+            } else {
+                // 输入框不存在，保留原来的 colorSettings
+                book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings: book.data.colorSettings };
+            }
             
-            if (bgColorInput) colorSettings.bgColor = bgColorInput.value;
-            if (bgImageInput) colorSettings.bgImage = bgImageInput.value;
-            if (hiddenColorInput) colorSettings.hiddenColor = hiddenColorInput.value;
-            if (hiddenImageInput) colorSettings.hiddenImage = hiddenImageInput.value;
-            if (surfaceColorInput) colorSettings.surfaceColor = surfaceColorInput.value;
-            if (surfaceImageInput) colorSettings.surfaceImage = surfaceImageInput.value;
-            if (gridColorInput) colorSettings.gridColor = gridColorInput.value;
-            if (dividerBgColorInput) colorSettings.dividerBgColor = dividerBgColorInput.value;
-            
-            book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings };
             book.lastEditedAt = new Date().toISOString();
         }
         
@@ -6113,6 +6177,14 @@ function deleteSelectedEvents() {
             const gridRgb = hexToRgb(gridColorHex);
             const dividerBgColorInput = document.getElementById('dividerBgColor');
             const dividerBgColor = dividerBgColorInput ? dividerBgColorInput.value : '#8b5cf6';
+            
+            applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity || 0.3, dividerBgColor);
+        }
+        
+        // 直接应用颜色，不依赖输入框
+        function applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity, dividerBgColor) {
+            const gridRgb = hexToRgb(gridColorHex || '#8b5cf6');
+            opacity = opacity !== undefined ? opacity : 0.3;
 
             // 应用网页背景
             if (bgImage) {
