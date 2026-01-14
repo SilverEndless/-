@@ -19,7 +19,7 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #1a1a1a;
+            background: #000000 !important; /* 固定为纯黑色 */
             display: flex;
             flex-direction: column;
             padding: 0;
@@ -257,7 +257,7 @@
             position: relative;
             background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 50%, #5b21b6 100%);
             min-height: 200px;
-            border-bottom: 5px solid #a78bfa;
+            /* border-bottom: 5px solid #a78bfa; 已删除 */
         }
 
         /* 暗层内的事件：hover时从底部扩展（因为暗层是反向的，layer 0在底部） */
@@ -653,6 +653,16 @@
         }
         .modal-close:hover { color: #111827; background: #f3f4f6; border-radius: 4px; }
         .modal-body { padding: 10px; }
+        
+        /* 颜色预设按钮效果 */
+        .preset-btn:hover {
+            transform: scale(1.05);
+            border-color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+        .preset-btn:active {
+            transform: scale(0.98);
+        }
         .modal-footer {
             padding: 8px;
             border-top: 1px solid #e5e7eb;
@@ -2173,70 +2183,132 @@
             </div>
             <div class="modal-body">
                 <div style="display: grid; gap: 20px;">
-                    <!-- 背景颜色 -->
+                    <!-- 颜色预设方案 -->
                     <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🌌 网页背景</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="bgColor" value="#111827" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                            <input type="text" id="bgImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
+                        <label style="display: block; margin-bottom: 12px; font-weight: bold; font-size: 18px;">🎨 选择配色方案</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+                            <button onclick="applyColorPreset('destiny')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #6B1F2B 0%, #4E5A6A 50%, #2F5D50 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">🎭 宿命感</div>
+                            </button>
+                            <button onclick="applyColorPreset('rational')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #1E2A44 0%, #7A7F87 50%, #4F7A6A 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">🔷 理性秩序</div>
+                            </button>
+                            <button onclick="applyColorPreset('pseudodaily')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #3B2A3F 0%, #9B948C 50%, #6F8FAF 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">🗡️ 伪日常</div>
+                            </button>
+                            <button onclick="applyColorPreset('coldmyth')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #0F2A2E 0%, #5C6F7A 50%, #6B7F5A 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">❄️ 冷神话</div>
+                            </button>
+                            <button onclick="applyColorPreset('collapsing')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #7A2E2E 0%, #4A4A4A 50%, #3F6F73 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">💥 崩坏进行中</div>
+                            </button>
+                            <button onclick="applyColorPreset('calmillusion')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #241622 0%, #8A857F 50%, #8FB7C4 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
+                                <div style="font-size: 16px;">🌊 表象平静</div>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 暗层颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">🌑 暗层背景</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="hiddenColor" value="#1e1b4b" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                            <input type="text" id="hiddenImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
+                    <!-- 自定义颜色 -->
+                    <div style="border-top: 2px solid #4b5563; padding-top: 20px;">
+                        <label style="display: block; margin-bottom: 12px; font-weight: bold; font-size: 18px;">🎨 自定义颜色</label>
+                        
+                        <!-- 主要颜色：2x2网格，中等方块，置中 -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                            <!-- 暗层颜色 -->
+                            <div onclick="document.getElementById('hiddenColor').click()" id="hiddenColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #1e1b4b; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s;">
+                                🌑 暗层
+                                <input type="color" id="hiddenColor" value="#1e1b4b" onchange="updateColors(); updateColorBox('hiddenColor', 'hiddenColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
+
+                            <!-- 表层颜色 -->
+                            <div onclick="document.getElementById('surfaceColor').click()" id="surfaceColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #0c4a6e; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s;">
+                                ☀️ 表层
+                                <input type="color" id="surfaceColor" value="#0c4a6e" onchange="updateColors(); updateColorBox('surfaceColor', 'surfaceColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
+
+                            <!-- 格子线颜色 -->
+                            <div onclick="document.getElementById('gridColor').click()" id="gridColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #8b5cf6; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s;">
+                                📏 格子线
+                                <input type="color" id="gridColor" value="#8b5cf6" onchange="updateColors(); updateColorBox('gridColor', 'gridColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
+
+                            <!-- 时间条颜色 -->
+                            <div onclick="document.getElementById('dividerBgColor').click()" id="dividerBgColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #8b5cf6; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s;">
+                                ⏱️ 时间条
+                                <input type="color" id="dividerBgColor" value="#8b5cf6" onchange="updateColors(); updateColorBox('dividerBgColor', 'dividerBgColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 表层颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">☀️ 表层背景</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="color" id="surfaceColor" value="#0c4a6e" onchange="updateColors()" style="width: 60px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                            <input type="text" id="surfaceImage" placeholder="或输入图片URL" class="form-input" style="flex: 1;" onchange="updateColors()">
+                    <!-- 背景图片上传 -->
+                    <div style="border-top: 2px solid #4b5563; padding-top: 20px;">
+                        <label style="display: block; margin-bottom: 12px; font-weight: bold; font-size: 18px;">🖼️ 背景图片</label>
+                        
+                        <!-- 图片上传：1x2网格 -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <!-- 暗层图片 -->
+                            <div onclick="document.getElementById('hiddenImageFile').click()" style="aspect-ratio: 1; border: 2px dashed #4b5563; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1f2937; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s;">
+                                <input type="file" id="hiddenImageFile" accept="image/*" onchange="handleImageUpload('hidden')" style="display: none;">
+                                <input type="hidden" id="hiddenImage">
+                                <div id="hiddenImagePreview" style="width: 100%; height: 100%; display: none; position: absolute; top: 0; left: 0;">
+                                    <img id="hiddenImagePreviewImg" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <button onclick="event.stopPropagation(); clearImage('hidden')" style="position: absolute; top: 5px; right: 5px; background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">×</button>
+                                </div>
+                                <div id="hiddenImagePlaceholder" style="text-align: center; color: #9ca3af;">
+                                    <div style="font-size: 40px; margin-bottom: 10px;">+</div>
+                                    <div style="font-size: 14px; font-weight: bold;">🌑 暗层图</div>
+                                </div>
+                            </div>
+
+                            <!-- 表层图片 -->
+                            <div onclick="document.getElementById('surfaceImageFile').click()" style="aspect-ratio: 1; border: 2px dashed #4b5563; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1f2937; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s;">
+                                <input type="file" id="surfaceImageFile" accept="image/*" onchange="handleImageUpload('surface')" style="display: none;">
+                                <input type="hidden" id="surfaceImage">
+                                <div id="surfaceImagePreview" style="width: 100%; height: 100%; display: none; position: absolute; top: 0; left: 0;">
+                                    <img id="surfaceImagePreviewImg" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <button onclick="event.stopPropagation(); clearImage('surface')" style="position: absolute; top: 5px; right: 5px; background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">×</button>
+                                </div>
+                                <div id="surfaceImagePlaceholder" style="text-align: center; color: #9ca3af;">
+                                    <div style="font-size: 40px; margin-bottom: 10px;">+</div>
+                                    <div style="font-size: 14px; font-weight: bold;">☀️ 表层图</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 格子线颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📏 格子线颜色</label>
-                        <input type="color" id="gridColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                    </div>
+                    <!-- 其他设置 -->
+                    <div style="border-top: 2px solid #4b5563; padding-top: 20px;">
+                        <label style="display: block; margin-bottom: 12px; font-weight: bold; font-size: 18px;">⚙️ 其他设置</label>
+                        
+                        <!-- 分隔线、章节、天数：1x3网格，小方块 -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                            <!-- 分隔线颜色 -->
+                            <div onclick="document.getElementById('dividerColor').click()" id="dividerColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #a78bfa; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                                ➖ 分隔线
+                                <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors(); updateColorBox('dividerColor', 'dividerColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
 
-                    <!-- 时间条背景颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">⏱️ 时间条背景颜色</label>
-                        <input type="color" id="dividerBgColor" value="#8b5cf6" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                    </div>
+                            <!-- 章节刻度颜色 -->
+                            <div onclick="document.getElementById('chapterScaleColor').click()" id="chapterScaleColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #d8b4fe; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                                📖 章节
+                                <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors(); updateColorBox('chapterScaleColor', 'chapterScaleColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
 
-                    <!-- 格子线透明度 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📏 格子线透明度</label>
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <input type="range" id="gridOpacity" min="0" max="100" value="30" onchange="updateColors()" style="flex: 1;">
-                            <span id="opacityValue" style="font-weight: bold; font-size: 18px; min-width: 50px;">30%</span>
+                            <!-- 天数刻度颜色 -->
+                            <div onclick="document.getElementById('dayScaleColor').click()" id="dayScaleColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fbbf24; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                                📅 天数
+                                <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors(); updateColorBox('dayScaleColor', 'dayScaleColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- 分隔线颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">➖ 分隔线颜色</label>
-                        <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                    </div>
-
-                    <!-- 章节刻度颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📖 章节刻度颜色</label>
-                        <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
-                    </div>
-
-                    <!-- 天数刻度颜色 -->
-                    <div>
-                        <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📅 天数刻度颜色</label>
-                        <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors()" style="width: 100px; height: 35px; border: 2px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                        <!-- 格子线透明度 -->
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; font-size: 16px;">📏 格子线透明度</label>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <input type="range" id="gridOpacity" min="0" max="100" value="30" onchange="updateColors()" style="flex: 1;">
+                                <span id="opacityValue" style="font-weight: bold; font-size: 18px; min-width: 50px;">30%</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div style="margin-top: 10px; display: flex; gap: 10px;">
@@ -3156,8 +3228,6 @@
             // 如果输入框存在，也更新输入框的值
             setTimeout(() => {
                 const colorSettings = book.data.colorSettings || {};
-                const bgColorInput = document.getElementById('bgColor');
-                const bgImageInput = document.getElementById('bgImage');
                 const hiddenColorInput = document.getElementById('hiddenColor');
                 const hiddenImageInput = document.getElementById('hiddenImage');
                 const surfaceColorInput = document.getElementById('surfaceColor');
@@ -3165,14 +3235,68 @@
                 const gridColorInput = document.getElementById('gridColor');
                 const dividerBgColorInput = document.getElementById('dividerBgColor');
                 
-                if (bgColorInput && colorSettings.bgColor) bgColorInput.value = colorSettings.bgColor;
-                if (bgImageInput && colorSettings.bgImage !== undefined) bgImageInput.value = colorSettings.bgImage;
-                if (hiddenColorInput && colorSettings.hiddenColor) hiddenColorInput.value = colorSettings.hiddenColor;
-                if (hiddenImageInput && colorSettings.hiddenImage !== undefined) hiddenImageInput.value = colorSettings.hiddenImage;
-                if (surfaceColorInput && colorSettings.surfaceColor) surfaceColorInput.value = colorSettings.surfaceColor;
-                if (surfaceImageInput && colorSettings.surfaceImage !== undefined) surfaceImageInput.value = colorSettings.surfaceImage;
-                if (gridColorInput && colorSettings.gridColor) gridColorInput.value = colorSettings.gridColor;
-                if (dividerBgColorInput && colorSettings.dividerBgColor) dividerBgColorInput.value = colorSettings.dividerBgColor;
+                // bgColor和bgImage已固定为黑色，不再从输入框读取
+                if (hiddenColorInput && colorSettings.hiddenColor) {
+                    hiddenColorInput.value = colorSettings.hiddenColor;
+                    updateColorBox('hiddenColor', 'hiddenColorBox');
+                }
+                if (hiddenImageInput && colorSettings.hiddenImage !== undefined) {
+                    hiddenImageInput.value = colorSettings.hiddenImage;
+                    // 恢复暗层图片缩略图
+                    if (colorSettings.hiddenImage) {
+                        const preview = document.getElementById('hiddenImagePreview');
+                        const previewImg = document.getElementById('hiddenImagePreviewImg');
+                        const placeholder = document.getElementById('hiddenImagePlaceholder');
+                        if (preview && previewImg && placeholder) {
+                            previewImg.src = colorSettings.hiddenImage;
+                            preview.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        }
+                    }
+                }
+                if (surfaceColorInput && colorSettings.surfaceColor) {
+                    surfaceColorInput.value = colorSettings.surfaceColor;
+                    updateColorBox('surfaceColor', 'surfaceColorBox');
+                }
+                if (surfaceImageInput && colorSettings.surfaceImage !== undefined) {
+                    surfaceImageInput.value = colorSettings.surfaceImage;
+                    // 恢复表层图片缩略图
+                    if (colorSettings.surfaceImage) {
+                        const preview = document.getElementById('surfaceImagePreview');
+                        const previewImg = document.getElementById('surfaceImagePreviewImg');
+                        const placeholder = document.getElementById('surfaceImagePlaceholder');
+                        if (preview && previewImg && placeholder) {
+                            previewImg.src = colorSettings.surfaceImage;
+                            preview.style.display = 'block';
+                            placeholder.style.display = 'none';
+                        }
+                    }
+                }
+                if (gridColorInput && colorSettings.gridColor) {
+                    gridColorInput.value = colorSettings.gridColor;
+                    updateColorBox('gridColor', 'gridColorBox');
+                }
+                if (dividerBgColorInput && colorSettings.dividerBgColor) {
+                    dividerBgColorInput.value = colorSettings.dividerBgColor;
+                    updateColorBox('dividerBgColor', 'dividerBgColorBox');
+                }
+                
+                // 更新其他颜色方块
+                const dividerColorInput = document.getElementById('dividerColor');
+                const chapterScaleColorInput = document.getElementById('chapterScaleColor');
+                const dayScaleColorInput = document.getElementById('dayScaleColor');
+                if (dividerColorInput && colorSettings.dividerColor) {
+                    dividerColorInput.value = colorSettings.dividerColor;
+                    updateColorBox('dividerColor', 'dividerColorBox');
+                }
+                if (chapterScaleColorInput && colorSettings.chapterScaleColor) {
+                    chapterScaleColorInput.value = colorSettings.chapterScaleColor;
+                    updateColorBox('chapterScaleColor', 'chapterScaleColorBox');
+                }
+                if (dayScaleColorInput && colorSettings.dayScaleColor) {
+                    dayScaleColorInput.value = colorSettings.dayScaleColor;
+                    updateColorBox('dayScaleColor', 'dayScaleColorBox');
+                }
             }, 100);
         }
         
@@ -6123,17 +6247,66 @@ function deleteSelectedEvents() {
 
             if (inputs.bgColor) inputs.bgColor.value = customColors.bgColor;
             if (inputs.bgImage) inputs.bgImage.value = customColors.bgImage;
-            if (inputs.hiddenColor) inputs.hiddenColor.value = customColors.hiddenColor;
-            if (inputs.hiddenImage) inputs.hiddenImage.value = customColors.hiddenImage;
-            if (inputs.surfaceColor) inputs.surfaceColor.value = customColors.surfaceColor;
-            if (inputs.surfaceImage) inputs.surfaceImage.value = customColors.surfaceImage;
+            if (inputs.hiddenColor) {
+                inputs.hiddenColor.value = customColors.hiddenColor;
+                updateColorBox('hiddenColor', 'hiddenColorBox');
+            }
+            if (inputs.hiddenImage) {
+                inputs.hiddenImage.value = customColors.hiddenImage;
+                // 更新暗层图片预览
+                const hiddenPreview = document.getElementById('hiddenImagePreview');
+                const hiddenPreviewImg = document.getElementById('hiddenImagePreviewImg');
+                const hiddenPlaceholder = document.getElementById('hiddenImagePlaceholder');
+                if (customColors.hiddenImage && hiddenPreview && hiddenPreviewImg && hiddenPlaceholder) {
+                    hiddenPreviewImg.src = customColors.hiddenImage;
+                    hiddenPreview.style.display = 'block';
+                    hiddenPlaceholder.style.display = 'none';
+                } else if (hiddenPreview && hiddenPlaceholder) {
+                    hiddenPreview.style.display = 'none';
+                    hiddenPlaceholder.style.display = 'block';
+                }
+            }
+            if (inputs.surfaceColor) {
+                inputs.surfaceColor.value = customColors.surfaceColor;
+                updateColorBox('surfaceColor', 'surfaceColorBox');
+            }
+            if (inputs.surfaceImage) {
+                inputs.surfaceImage.value = customColors.surfaceImage;
+                // 更新表层图片预览
+                const surfacePreview = document.getElementById('surfaceImagePreview');
+                const surfacePreviewImg = document.getElementById('surfaceImagePreviewImg');
+                const surfacePlaceholder = document.getElementById('surfaceImagePlaceholder');
+                if (customColors.surfaceImage && surfacePreview && surfacePreviewImg && surfacePlaceholder) {
+                    surfacePreviewImg.src = customColors.surfaceImage;
+                    surfacePreview.style.display = 'block';
+                    surfacePlaceholder.style.display = 'none';
+                } else if (surfacePreview && surfacePlaceholder) {
+                    surfacePreview.style.display = 'none';
+                    surfacePlaceholder.style.display = 'block';
+                }
+            }
             if (inputs.gridOpacity) inputs.gridOpacity.value = customColors.gridOpacity;
             if (inputs.opacityValue) inputs.opacityValue.textContent = customColors.gridOpacity + '%';
-            if (inputs.gridColor) inputs.gridColor.value = customColors.gridColor;
-            if (inputs.dividerBgColor) inputs.dividerBgColor.value = customColors.dividerBgColor;
-            if (inputs.dividerColor) inputs.dividerColor.value = customColors.dividerColor;
-            if (inputs.chapterScaleColor) inputs.chapterScaleColor.value = customColors.chapterScaleColor;
-            if (inputs.dayScaleColor) inputs.dayScaleColor.value = customColors.dayScaleColor;
+            if (inputs.gridColor) {
+                inputs.gridColor.value = customColors.gridColor;
+                updateColorBox('gridColor', 'gridColorBox');
+            }
+            if (inputs.dividerBgColor) {
+                inputs.dividerBgColor.value = customColors.dividerBgColor;
+                updateColorBox('dividerBgColor', 'dividerBgColorBox');
+            }
+            if (inputs.dividerColor) {
+                inputs.dividerColor.value = customColors.dividerColor;
+                updateColorBox('dividerColor', 'dividerColorBox');
+            }
+            if (inputs.chapterScaleColor) {
+                inputs.chapterScaleColor.value = customColors.chapterScaleColor;
+                updateColorBox('chapterScaleColor', 'chapterScaleColorBox');
+            }
+            if (inputs.dayScaleColor) {
+                inputs.dayScaleColor.value = customColors.dayScaleColor;
+                updateColorBox('dayScaleColor', 'dayScaleColorBox');
+            }
         }
 
         function closeColorCustomizer() {
@@ -6158,8 +6331,6 @@ function deleteSelectedEvents() {
 
         function applyColors() {
             // 先检查输入元素是否存在
-            const bgColorInput = document.getElementById('bgColor');
-            const bgImageInput = document.getElementById('bgImage');
             const hiddenColorInput = document.getElementById('hiddenColor');
             const hiddenImageInput = document.getElementById('hiddenImage');
             const surfaceColorInput = document.getElementById('surfaceColor');
@@ -6170,18 +6341,18 @@ function deleteSelectedEvents() {
             const dayScaleColorInput = document.getElementById('dayScaleColor');
             const gridColorInput = document.getElementById('gridColor');
 
-            if (!bgColorInput || !hiddenColorInput || !surfaceColorInput) {
+            if (!hiddenColorInput || !surfaceColorInput) {
                 // 输入元素还不存在，跳过
                 return;
             }
 
-            const bgColor = bgColorInput.value;
-            const bgImage = bgImageInput.value;
+            const bgColor = '#000000'; // 固定为黑色
+            const bgImage = ''; // 不使用网页背景图
             const hiddenColor = hiddenColorInput.value;
-            const hiddenImage = hiddenImageInput.value;
+            const hiddenImage = hiddenImageInput ? hiddenImageInput.value : '';
             const surfaceColor = surfaceColorInput.value;
-            const surfaceImage = surfaceImageInput.value;
-            const opacity = gridOpacityInput.value / 100;
+            const surfaceImage = surfaceImageInput ? surfaceImageInput.value : '';
+            const opacity = gridOpacityInput ? gridOpacityInput.value / 100 : 0.3;
             const dividerColor = dividerColorInput ? dividerColorInput.value : '#a78bfa';
             const chapterScaleColor = chapterScaleColorInput ? chapterScaleColorInput.value : '#d8b4fe';
             const dayScaleColor = dayScaleColorInput ? dayScaleColorInput.value : '#fbbf24';
@@ -6198,16 +6369,8 @@ function deleteSelectedEvents() {
             const gridRgb = hexToRgb(gridColorHex || '#8b5cf6');
             opacity = opacity !== undefined ? opacity : 0.3;
 
-            // 应用网页背景
-            if (bgImage) {
-                document.body.style.backgroundImage = `url(${bgImage})`;
-                document.body.style.backgroundColor = bgColor;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundAttachment = 'fixed';
-            } else {
-                document.body.style.backgroundImage = 'none';
-                document.body.style.backgroundColor = bgColor;
-            }
+            // 网页背景固定为纯黑色（已在CSS中设置）
+            // bgColor和bgImage参数保留以兼容旧数据，但不再应用
 
             // 应用暗层背景
             const hiddenArea = document.querySelector('.hidden-layer-area');
@@ -6267,10 +6430,153 @@ function deleteSelectedEvents() {
             }, 100);
         }
 
+        // 颜色预设方案
+        const colorPresets = {
+            destiny: {
+                name: '宿命感',
+                description: '阴影在运转',
+                hiddenColor: '#6B1F2B',
+                surfaceColor: '#2F5D50',
+                gridColor: '#5A4A4E',
+                dividerBgColor: '#4E5A6A'
+            },
+            rational: {
+                name: '理性秩序',
+                description: '世界在运算',
+                hiddenColor: '#1E2A44',
+                surfaceColor: '#4F7A6A',
+                gridColor: '#5A6A70',
+                dividerBgColor: '#7A7F87'
+            },
+            pseudodaily: {
+                name: '伪日常',
+                description: '甜下面是刀',
+                hiddenColor: '#3B2A3F',
+                surfaceColor: '#6F8FAF',
+                gridColor: '#6A6A7A',
+                dividerBgColor: '#9B948C'
+            },
+            coldmyth: {
+                name: '冷神话',
+                description: '非人视角',
+                hiddenColor: '#0F2A2E',
+                surfaceColor: '#6B7F5A',
+                gridColor: '#4A5A5A',
+                dividerBgColor: '#5C6F7A'
+            },
+            collapsing: {
+                name: '崩坏进行中',
+                description: '压力层层叠加',
+                hiddenColor: '#7A2E2E',
+                surfaceColor: '#3F6F73',
+                gridColor: '#5A4A4A',
+                dividerBgColor: '#4A4A4A'
+            },
+            calmillusion: {
+                name: '表象平静',
+                description: '底层异常',
+                hiddenColor: '#241622',
+                surfaceColor: '#8FB7C4',
+                gridColor: '#5A6A70',
+                dividerBgColor: '#8A857F'
+            }
+        };
+        
+        // 应用预设方案
+        function applyColorPreset(presetName) {
+            const preset = colorPresets[presetName];
+            if (!preset) return;
+            
+            document.getElementById('hiddenColor').value = preset.hiddenColor;
+            document.getElementById('surfaceColor').value = preset.surfaceColor;
+            document.getElementById('gridColor').value = preset.gridColor;
+            document.getElementById('dividerBgColor').value = preset.dividerBgColor;
+            
+            // 更新方块背景色
+            updateColorBox('hiddenColor', 'hiddenColorBox');
+            updateColorBox('surfaceColor', 'surfaceColorBox');
+            updateColorBox('gridColor', 'gridColorBox');
+            updateColorBox('dividerBgColor', 'dividerBgColorBox');
+            
+            updateColors();
+            customAlert(`✅ 已应用「${preset.name}」配色方案！`);
+        }
+        
+        // 更新颜色方块的背景色
+        function updateColorBox(inputId, boxId) {
+            const input = document.getElementById(inputId);
+            const box = document.getElementById(boxId);
+            if (input && box) {
+                box.style.backgroundColor = input.value;
+                // 根据背景色亮度调整文字颜色
+                const color = input.value;
+                const r = parseInt(color.substr(1,2), 16);
+                const g = parseInt(color.substr(3,2), 16);
+                const b = parseInt(color.substr(5,2), 16);
+                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                box.style.color = brightness > 128 ? '#1f2937' : 'white';
+                box.style.textShadow = brightness > 128 ? '0 1px 2px rgba(255,255,255,0.5)' : '0 1px 3px rgba(0,0,0,0.5)';
+            }
+        }
+        
+        // 图片上传处理
+        function handleImageUpload(layer) {
+            const fileInput = document.getElementById(layer + 'ImageFile');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            // 检查文件大小（限制5MB）
+            if (file.size > 5 * 1024 * 1024) {
+                customAlert('⚠️ 图片文件太大，请选择小于5MB的图片');
+                fileInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                document.getElementById(layer + 'Image').value = base64;
+                
+                // 显示缩略图
+                const preview = document.getElementById(layer + 'ImagePreview');
+                const previewImg = document.getElementById(layer + 'ImagePreviewImg');
+                const placeholder = document.getElementById(layer + 'ImagePlaceholder');
+                
+                if (preview && previewImg && placeholder) {
+                    previewImg.src = base64;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                
+                updateColors();
+                customAlert('✅ 图片已上传！');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 清除图片
+        function clearImage(layer) {
+            document.getElementById(layer + 'ImageFile').value = '';
+            document.getElementById(layer + 'Image').value = '';
+            
+            // 隐藏缩略图，显示placeholder
+            const preview = document.getElementById(layer + 'ImagePreview');
+            const placeholder = document.getElementById(layer + 'ImagePlaceholder');
+            
+            if (preview && placeholder) {
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+            
+            updateColors();
+            customAlert('✅ 图片已清除！');
+        }
+
         function saveColors() {
             const colorSettings = {
-                bgColor: document.getElementById('bgColor').value,
-                bgImage: document.getElementById('bgImage').value,
+                bgColor: '#000000', // 固定为黑色
+                bgImage: '', // 不使用网页背景图
                 hiddenColor: document.getElementById('hiddenColor').value,
                 hiddenImage: document.getElementById('hiddenImage').value,
                 surfaceColor: document.getElementById('surfaceColor').value,
@@ -6278,9 +6584,9 @@ function deleteSelectedEvents() {
                 gridOpacity: parseInt(document.getElementById('gridOpacity').value),
                 gridColor: document.getElementById('gridColor').value,
                 dividerBgColor: document.getElementById('dividerBgColor').value,
-                dividerColor: document.getElementById('dividerColor').value,
-                chapterScaleColor: document.getElementById('chapterScaleColor').value,
-                dayScaleColor: document.getElementById('dayScaleColor').value
+                dividerColor: document.getElementById('dividerColor') ? document.getElementById('dividerColor').value : '#a78bfa',
+                chapterScaleColor: document.getElementById('chapterScaleColor') ? document.getElementById('chapterScaleColor').value : '#d8b4fe',
+                dayScaleColor: document.getElementById('dayScaleColor') ? document.getElementById('dayScaleColor').value : '#fbbf24'
             };
             
             customColors = colorSettings;
@@ -6320,6 +6626,8 @@ function deleteSelectedEvents() {
 
             showColorCustomizer();
             applyColors();
+            
+            customAlert('✅ 已恢复默认配色！');
         }
 
         // 页面加载时恢复颜色设置
