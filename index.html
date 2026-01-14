@@ -3181,6 +3181,11 @@
             const book = getCurrentBook();
             const colorSettings = book.data.colorSettings || {};
             console.log('🎨 应用颜色设置:', colorSettings);
+            console.log('   书籍名称:', book.name);
+            console.log('   是否有colorSettings:', !!book.data.colorSettings);
+            console.log('   bgColor:', colorSettings.bgColor);
+            console.log('   bgImage:', colorSettings.bgImage);
+            console.log('   surfaceColor:', colorSettings.surfaceColor);
             
             // 总是应用颜色（即使没有保存，也用默认值）
             applyColorsDirectly(
@@ -3199,33 +3204,16 @@
         function saveBookData() {
             const book = getCurrentBook();
             
-            // 保存颜色设置（只在输入框存在时才更新）
-            const bgColorInput = document.getElementById('bgColor');
-            if (bgColorInput) {
-                // 输入框存在，保存颜色设置
-                const colorSettings = {};
-                const bgImageInput = document.getElementById('bgImage');
-                const hiddenColorInput = document.getElementById('hiddenColor');
-                const hiddenImageInput = document.getElementById('hiddenImage');
-                const surfaceColorInput = document.getElementById('surfaceColor');
-                const surfaceImageInput = document.getElementById('surfaceImage');
-                const gridColorInput = document.getElementById('gridColor');
-                const dividerBgColorInput = document.getElementById('dividerBgColor');
-                
-                if (bgColorInput) colorSettings.bgColor = bgColorInput.value;
-                if (bgImageInput) colorSettings.bgImage = bgImageInput.value;
-                if (hiddenColorInput) colorSettings.hiddenColor = hiddenColorInput.value;
-                if (hiddenImageInput) colorSettings.hiddenImage = hiddenImageInput.value;
-                if (surfaceColorInput) colorSettings.surfaceColor = surfaceColorInput.value;
-                if (surfaceImageInput) colorSettings.surfaceImage = surfaceImageInput.value;
-                if (gridColorInput) colorSettings.gridColor = gridColorInput.value;
-                if (dividerBgColorInput) colorSettings.dividerBgColor = dividerBgColorInput.value;
-                
-                book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings };
-            } else {
-                // 输入框不存在，保留原来的 colorSettings
-                book.data = { events, days, tagColors, novelChapters, novelVolumes, recycleBin, colorSettings: book.data.colorSettings };
-            }
+            // 直接保存，保留原有的 colorSettings
+            book.data = { 
+                events, 
+                days, 
+                tagColors, 
+                novelChapters, 
+                novelVolumes, 
+                recycleBin, 
+                colorSettings: book.data.colorSettings // 保留原有的颜色设置
+            };
             
             book.lastEditedAt = new Date().toISOString();
         }
@@ -6280,7 +6268,7 @@ function deleteSelectedEvents() {
         }
 
         function saveColors() {
-            customColors = {
+            const colorSettings = {
                 bgColor: document.getElementById('bgColor').value,
                 bgImage: document.getElementById('bgImage').value,
                 hiddenColor: document.getElementById('hiddenColor').value,
@@ -6294,9 +6282,19 @@ function deleteSelectedEvents() {
                 chapterScaleColor: document.getElementById('chapterScaleColor').value,
                 dayScaleColor: document.getElementById('dayScaleColor').value
             };
+            
+            customColors = colorSettings;
 
-            // 保存到localStorage
+            // 保存到当前书籍的data中
+            const book = getCurrentBook();
+            book.data.colorSettings = colorSettings;
+            console.log('💾 保存颜色设置到书籍数据:', colorSettings);
+
+            // 保存到localStorage（兼容旧版本）
             localStorage.setItem('customColors', JSON.stringify(customColors));
+            
+            // 立即保存书籍数据
+            autoSave();
 
             applyColors();
             closeColorCustomizer();
