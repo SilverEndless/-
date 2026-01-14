@@ -2398,9 +2398,12 @@
         // 自动保存到localStorage
         function autoSave() {
             saveBookData();
-            const data = { books, currentBookId, savedAt: new Date().toISOString() };
+            const data = { books, currentBookId, savedAt: new Date().toISOString(), version: '2.0-multibook' };
             try {
                 localStorage.setItem('storyOutlineData', JSON.stringify(data));
+                console.log('💾 本地保存成功 -', new Date().toLocaleTimeString());
+                console.log('   书籍:', getCurrentBook().name);
+                console.log('   事件数:', getCurrentBook().data.events.length);
                 // 静默保存到本地，不显示提示
             } catch (e) {
                 console.error('❌ 本地保存失败:', e);
@@ -2557,14 +2560,22 @@
             if (savedData) {
                 try {
                     const data = JSON.parse(savedData);
+                    console.log('📦 localStorage数据:', data);
+                    
                     if (data.version === '2.0-multibook' && data.books) {
                         books = data.books;
                         currentBookId = data.currentBookId || books[0].id;
-                        console.log('📦 已加载本地数据');
+                        console.log('✅ 已加载本地数据，书籍数量:', books.length);
+                        console.log('📚 当前书籍:', books[0].name);
+                        console.log('📋 事件数量:', books[0].data.events.length);
+                    } else {
+                        console.log('⚠️ localStorage数据格式不正确');
                     }
                 } catch (e) {
                     console.error('❌ 加载本地数据失败:', e);
                 }
+            } else {
+                console.log('📭 localStorage 没有数据');
             }
             
             // 尝试自动登录
@@ -2576,9 +2587,17 @@
                 loadBookData();
                 render();
                 renderNovelChapterList();
+                // 在render之后应用颜色
+                setTimeout(() => applyLoadedColors(), 200);
             } else {
                 console.log('☁️ 自动登录成功，已加载云端数据');
             }
+            
+            // 最终检查：显示当前加载的数据
+            console.log('🔍 最终检查:');
+            console.log('   书籍名称:', getCurrentBook().name);
+            console.log('   事件数量:', getCurrentBook().data.events.length);
+            console.log('   第一个事件:', getCurrentBook().data.events[0]?.title);
         }
         
         // 自动登录Google Drive
@@ -2644,6 +2663,8 @@
                     loadBookData();
                     render();
                     renderNovelChapterList();
+                    // 在render之后应用颜色设置
+                    setTimeout(() => applyLoadedColors(), 200);
                     
                     // 仍然启用自动同步
                     if (!autoCloudSyncEnabled) {
@@ -2952,6 +2973,8 @@
                         showTimeline();
                         render();
                         renderNovelChapterList();
+                        // 在render之后应用颜色设置
+                        setTimeout(() => applyLoadedColors(), 200);
                         showToast('✅ 已从云端恢复数据！', 'success');
                         console.log('✅ 数据已恢复', data.savedAt);
                         return true;
@@ -3002,6 +3025,8 @@
                             showTimeline();
                             render();
                             renderNovelChapterList();
+                            // 在render之后应用颜色设置
+                            setTimeout(() => applyLoadedColors(), 200);
                             showToast('✅ 已从云端恢复数据！', 'success');
                             console.log('✅ 数据已恢复', data.savedAt);
                             return true;
@@ -3128,30 +3153,9 @@
             recycleBin = book.data.recycleBin || { chapters: [], volumes: [] };
             document.getElementById('currentBookName').textContent = book.name;
             
-            // 加载并应用颜色设置
-            const colorSettings = book.data.colorSettings || {};
-            console.log('📐 加载颜色设置:', colorSettings);
-            
-            // 如果有保存的颜色，直接应用（不依赖输入框）
-            if (colorSettings.bgColor || colorSettings.hiddenColor || colorSettings.surfaceColor) {
-                console.log('✅ 应用保存的颜色');
-                applyColorsDirectly(
-                    colorSettings.bgColor || '#111827',
-                    colorSettings.bgImage || '',
-                    colorSettings.hiddenColor || '#1e1b4b',
-                    colorSettings.hiddenImage || '',
-                    colorSettings.surfaceColor || '#0c4a6e',
-                    colorSettings.surfaceImage || '',
-                    colorSettings.gridColor || '#8b5cf6',
-                    0.3,
-                    colorSettings.dividerBgColor || '#8b5cf6'
-                );
-            } else {
-                console.log('ℹ️ 没有保存的颜色，使用默认颜色');
-            }
-            
             // 如果输入框存在，也更新输入框的值
             setTimeout(() => {
+                const colorSettings = book.data.colorSettings || {};
                 const bgColorInput = document.getElementById('bgColor');
                 const bgImageInput = document.getElementById('bgImage');
                 const hiddenColorInput = document.getElementById('hiddenColor');
@@ -3170,6 +3174,26 @@
                 if (gridColorInput && colorSettings.gridColor) gridColorInput.value = colorSettings.gridColor;
                 if (dividerBgColorInput && colorSettings.dividerBgColor) dividerBgColorInput.value = colorSettings.dividerBgColor;
             }, 100);
+        }
+        
+        // 应用保存的颜色设置（在render之后调用）
+        function applyLoadedColors() {
+            const book = getCurrentBook();
+            const colorSettings = book.data.colorSettings || {};
+            console.log('🎨 应用颜色设置:', colorSettings);
+            
+            // 总是应用颜色（即使没有保存，也用默认值）
+            applyColorsDirectly(
+                colorSettings.bgColor || '#111827',
+                colorSettings.bgImage || '',
+                colorSettings.hiddenColor || '#1e1b4b',
+                colorSettings.hiddenImage || '',
+                colorSettings.surfaceColor || '#0c4a6e',
+                colorSettings.surfaceImage || '',
+                colorSettings.gridColor || '#8b5cf6',
+                0.3,
+                colorSettings.dividerBgColor || '#8b5cf6'
+            );
         }
         
         function saveBookData() {
