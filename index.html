@@ -972,6 +972,44 @@
                 max-width: 95%;
                 margin: 20px auto;
             }
+            
+            .modal-body {
+                padding: 15px 10px;
+            }
+            
+            /* 颜色设置弹窗响应式 */
+            .modal-title {
+                font-size: 20px;
+            }
+            
+            .modal-header {
+                padding: 8px 10px !important;
+            }
+            
+            .preset-btn {
+                font-size: 14px !important;
+                padding: 10px !important;
+            }
+            
+            /* 颜色设置弹窗内容区域 */
+            #colorCustomizer .modal-content {
+                max-width: 95% !important;
+            }
+            
+            /* 颜色方块容器 - 使用属性选择器覆盖inline style */
+            #colorCustomizer [style*="max-width: 400px"] {
+                max-width: 100% !important;
+            }
+            
+            /* 调整方块文字大小 */
+            #colorCustomizer [style*="font-size: 20px"] {
+                font-size: 18px !important;
+            }
+            
+            /* 图片上传区域 - 减小padding */
+            #colorCustomizer [style*="padding: 15px"][style*="aspect-ratio: 1"] {
+                padding: 12px !important;
+            }
 
             .form-input, .form-select {
                 font-size: 16px; /* 防止iOS自动缩放 */
@@ -1058,6 +1096,70 @@
                 max-width: 100%;
                 margin: 0;
                 border-radius: 0;
+            }
+            
+            .modal-body {
+                padding: 10px 8px;
+            }
+            
+            .modal-title {
+                font-size: 18px;
+            }
+            
+            .modal-header {
+                padding: 6px 8px !important;
+            }
+            
+            .modal-close {
+                font-size: 28px !important;
+                width: 28px !important;
+                height: 28px !important;
+            }
+            
+            /* 颜色设置弹窗 - 小屏幕 */
+            .preset-btn {
+                font-size: 13px !important;
+                padding: 8px !important;
+                min-width: 0 !important;
+            }
+            
+            .preset-btn div {
+                font-size: 13px !important;
+            }
+            
+            /* 颜色方块 - 更小文字 */
+            #colorCustomizer [style*="font-size: 20px"] {
+                font-size: 16px !important;
+            }
+            
+            #colorCustomizer [style*="font-size: 18px"] {
+                font-size: 16px !important;
+            }
+            
+            /* 确保方块容器不超出屏幕 */
+            #colorCustomizer [style*="max-width: 400px"] {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            
+            /* 图片上传区域 - 减小padding */
+            #colorCustomizer [style*="padding: 15px"][style*="aspect-ratio: 1"] {
+                padding: 10px !important;
+            }
+            
+            /* 图片上传 + 号 */
+            #colorCustomizer [style*="font-size: 40px"] {
+                font-size: 32px !important;
+            }
+            
+            #colorCustomizer [style*="font-size: 14px"] {
+                font-size: 13px !important;
+            }
+            
+            /* 清除按钮 */
+            #colorCustomizer button[style*="font-size: 12px"] {
+                font-size: 11px !important;
+                padding: 4px 8px !important;
             }
         }
 
