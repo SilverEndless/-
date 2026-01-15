@@ -2290,22 +2290,22 @@
                         <label style="display: block; margin-bottom: 12px; font-weight: bold; font-size: 18px;">🎨 选择配色方案</label>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
                             <button onclick="applyColorPreset('destiny')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #6B1F2B 0%, #4E5A6A 50%, #2F5D50 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">🎭 宿命感</div>
+                                <div style="font-size: 16px;">🎭 血色宿命</div>
                             </button>
                             <button onclick="applyColorPreset('rational')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #1E2A44 0%, #7A7F87 50%, #4F7A6A 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">🔷 理性秩序</div>
+                                <div style="font-size: 16px;">🔷 靛蓝秩序</div>
                             </button>
                             <button onclick="applyColorPreset('pseudodaily')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #3B2A3F 0%, #9B948C 50%, #6F8FAF 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">🗡️ 伪日常</div>
+                                <div style="font-size: 16px;">🗡️ 雾蓝伪装</div>
                             </button>
                             <button onclick="applyColorPreset('coldmyth')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #0F2A2E 0%, #5C6F7A 50%, #6B7F5A 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">❄️ 冷神话</div>
+                                <div style="font-size: 16px;">❄️ 青色神话</div>
                             </button>
                             <button onclick="applyColorPreset('collapsing')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #7A2E2E 0%, #4A4A4A 50%, #3F6F73 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">💥 崩坏进行中</div>
+                                <div style="font-size: 16px;">💥 赤锈崩坏</div>
                             </button>
                             <button onclick="applyColorPreset('calmillusion')" class="preset-btn" style="padding: 14px; border-radius: 8px; background: linear-gradient(135deg, #241622 0%, #8A857F 50%, #8FB7C4 100%); color: white; font-weight: bold; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; text-align: center;">
-                                <div style="font-size: 16px;">🌊 表象平静</div>
+                                <div style="font-size: 16px;">🌊 紫黑暗流</div>
                             </button>
                         </div>
                     </div>
@@ -3425,6 +3425,59 @@
                 0.3,
                 colorSettings.dividerBgColor || '#8b5cf6'
             );
+            
+            // 初始化图片预览状态
+            initImagePreviews();
+        }
+        
+        // 初始化图片预览状态（在页面加载和切换书籍时调用）
+        function initImagePreviews() {
+            const book = getCurrentBook();
+            const colorSettings = book.data.colorSettings || {};
+            
+            // 暗层图片预览
+            if (colorSettings.hiddenImage) {
+                const preview = document.getElementById('hiddenImagePreview');
+                const previewImg = document.getElementById('hiddenImagePreviewImg');
+                const placeholder = document.getElementById('hiddenImagePlaceholder');
+                const hiddenImageInput = document.getElementById('hiddenImage');
+                
+                if (preview && previewImg && placeholder && hiddenImageInput) {
+                    hiddenImageInput.value = colorSettings.hiddenImage;
+                    previewImg.src = colorSettings.hiddenImage;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+            } else {
+                const preview = document.getElementById('hiddenImagePreview');
+                const placeholder = document.getElementById('hiddenImagePlaceholder');
+                if (preview && placeholder) {
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'block';
+                }
+            }
+            
+            // 表层图片预览
+            if (colorSettings.surfaceImage) {
+                const preview = document.getElementById('surfaceImagePreview');
+                const previewImg = document.getElementById('surfaceImagePreviewImg');
+                const placeholder = document.getElementById('surfaceImagePlaceholder');
+                const surfaceImageInput = document.getElementById('surfaceImage');
+                
+                if (preview && previewImg && placeholder && surfaceImageInput) {
+                    surfaceImageInput.value = colorSettings.surfaceImage;
+                    previewImg.src = colorSettings.surfaceImage;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+            } else {
+                const preview = document.getElementById('surfaceImagePreview');
+                const placeholder = document.getElementById('surfaceImagePlaceholder');
+                if (preview && placeholder) {
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'block';
+                }
+            }
         }
         
         function saveBookData() {
@@ -6329,6 +6382,12 @@ function deleteSelectedEvents() {
             if (!modal) return;
 
             modal.style.display = 'flex';
+            
+            // 先从当前书籍加载colorSettings到customColors
+            const book = getCurrentBook();
+            if (book.data.colorSettings) {
+                customColors = Object.assign({}, customColors, book.data.colorSettings);
+            }
 
             // 加载当前设置（安全访问）
             const inputs = {
@@ -6409,6 +6468,9 @@ function deleteSelectedEvents() {
                 inputs.dayScaleColor.value = customColors.dayScaleColor;
                 updateColorBox('dayScaleColor', 'dayScaleColorBox');
             }
+            
+            // 从当前书籍的colorSettings初始化图片预览
+            initImagePreviews();
         }
 
         function closeColorCustomizer() {
@@ -6535,7 +6597,7 @@ function deleteSelectedEvents() {
         // 颜色预设方案
         const colorPresets = {
             destiny: {
-                name: '宿命感',
+                name: '血色宿命',
                 description: '阴影在运转',
                 hiddenColor: '#6B1F2B',
                 surfaceColor: '#2F5D50',
@@ -6543,7 +6605,7 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#4E5A6A'
             },
             rational: {
-                name: '理性秩序',
+                name: '靛蓝秩序',
                 description: '世界在运算',
                 hiddenColor: '#1E2A44',
                 surfaceColor: '#4F7A6A',
@@ -6551,7 +6613,7 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#7A7F87'
             },
             pseudodaily: {
-                name: '伪日常',
+                name: '雾蓝伪装',
                 description: '甜下面是刀',
                 hiddenColor: '#3B2A3F',
                 surfaceColor: '#6F8FAF',
@@ -6559,7 +6621,7 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#9B948C'
             },
             coldmyth: {
-                name: '冷神话',
+                name: '青色神话',
                 description: '非人视角',
                 hiddenColor: '#0F2A2E',
                 surfaceColor: '#6B7F5A',
@@ -6567,7 +6629,7 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#5C6F7A'
             },
             collapsing: {
-                name: '崩坏进行中',
+                name: '赤锈崩坏',
                 description: '压力层层叠加',
                 hiddenColor: '#7A2E2E',
                 surfaceColor: '#3F6F73',
@@ -6575,7 +6637,7 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#4A4A4A'
             },
             calmillusion: {
-                name: '表象平静',
+                name: '紫黑暗流',
                 description: '底层异常',
                 hiddenColor: '#241622',
                 surfaceColor: '#8FB7C4',
