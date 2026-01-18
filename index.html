@@ -2376,6 +2376,26 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- 图片显示模式选择 -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #9ca3af;">🌑 暗层模式</label>
+                                <select id="hiddenImageMode" onchange="updateColors()" style="width: 100%; padding: 8px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                                    <option value="cover">覆盖 (保持比例)</option>
+                                    <option value="stretch">伸展 (拉伸填满)</option>
+                                    <option value="repeat">延续 (平铺重复)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #9ca3af;">☀️ 表层模式</label>
+                                <select id="surfaceImageMode" onchange="updateColors()" style="width: 100%; padding: 8px; background: #1f2937; color: white; border: 1px solid #4b5563; border-radius: 6px; cursor: pointer;">
+                                    <option value="cover">覆盖 (保持比例)</option>
+                                    <option value="stretch">伸展 (拉伸填满)</option>
+                                    <option value="repeat">延续 (平铺重复)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 其他设置 -->
@@ -3426,8 +3446,20 @@
                 colorSettings.surfaceImage || '',
                 colorSettings.gridColor || '#8b5cf6',
                 0.3,
-                colorSettings.dividerBgColor || '#8b5cf6'
+                colorSettings.dividerBgColor || '#8b5cf6',
+                colorSettings.hiddenImageMode || 'cover',
+                colorSettings.surfaceImageMode || 'cover'
             );
+            
+            // 恢复图片模式选择器的值
+            const hiddenImageModeSelect = document.getElementById('hiddenImageMode');
+            const surfaceImageModeSelect = document.getElementById('surfaceImageMode');
+            if (hiddenImageModeSelect) {
+                hiddenImageModeSelect.value = colorSettings.hiddenImageMode || 'cover';
+            }
+            if (surfaceImageModeSelect) {
+                surfaceImageModeSelect.value = colorSettings.surfaceImageMode || 'cover';
+            }
             
             // 初始化图片预览状态
             initImagePreviews();
@@ -3603,6 +3635,7 @@
             loadBookData();
             showTimeline();
             render();
+            applyLoadedColors();
             renderNovelChapterList();
             closeBookManager();
             showToast('✅ 已切换到：'+getCurrentBook().name,'success');
@@ -4051,6 +4084,7 @@ function deleteSelectedEvents() {
             initGlobalTags(); // 初始化全局标签库
             updateZoom();
             render();
+            applyLoadedColors(); // 应用保存的颜色设置
             setupEventListeners();
 
             // 确保标签颜色在页面加载后更新
@@ -5094,11 +5128,11 @@ function deleteSelectedEvents() {
             const canvasRect = canvas.getBoundingClientRect();
             const chapterWidth = (zoom / 100) * 50;
 
-            // ===== 简单自动滚动（不影响任何其他逻辑）=====
-            const edgeZone = 100;
+            // ===== 自动滚动（上下左右）=====
+            const edgeZone = 100; // 靠近边缘100px时触发滚动
             const scrollStep = 8;
 
-            // 使用window坐标检测
+            // 上下滚动（使用window坐标检测）
             if (clientY < edgeZone && canvas.scrollTop > 0) {
                 // 靠近屏幕顶部，向上滚
                 canvas.scrollTop -= scrollStep;
@@ -5107,6 +5141,21 @@ function deleteSelectedEvents() {
                 const maxScroll = canvas.scrollHeight - canvas.clientHeight;
                 if (canvas.scrollTop < maxScroll) {
                     canvas.scrollTop += scrollStep;
+                }
+            }
+            
+            // 左右滚动（使用canvas相对坐标检测）
+            const canvasLeftEdge = canvasRect.left;
+            const canvasRightEdge = canvasRect.right;
+            
+            if (clientX < canvasLeftEdge + edgeZone && canvas.scrollLeft > 0) {
+                // 靠近canvas左边缘，向左滚
+                canvas.scrollLeft -= scrollStep;
+            } else if (clientX > canvasRightEdge - edgeZone) {
+                // 靠近canvas右边缘，向右滚
+                const maxScrollLeft = canvas.scrollWidth - canvas.clientWidth;
+                if (canvas.scrollLeft < maxScrollLeft) {
+                    canvas.scrollLeft += scrollStep;
                 }
             }
             // ===== 自动滚动结束 =====
@@ -5316,6 +5365,7 @@ function deleteSelectedEvents() {
             }
 
             const block = document.querySelector(`[data-id="${draggingEvent.id}"]`);
+            const draggedEventId = draggingEvent.id; // 保存ID
             if (block) {
                 block.classList.remove('dragging');
             }
@@ -5323,6 +5373,51 @@ function deleteSelectedEvents() {
             originalLayer = null; // 重置
             draggingEvent = null;
             render();
+            
+            // 拖动结束后，确保事件在可视区域内
+            setTimeout(() => {
+                scrollToEvent(draggedEventId);
+            }, 100);
+        }
+        
+        // 滚动到指定事件的位置
+        function scrollToEvent(eventId) {
+            if (!eventId) return;
+            
+            const eventBlock = document.querySelector(`[data-id="${eventId}"]`);
+            if (!eventBlock) return;
+            
+            const canvas = document.getElementById('timelineCanvas');
+            if (!canvas) return;
+            
+            const blockRect = eventBlock.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            // 计算事件块相对于canvas的位置
+            const blockLeft = blockRect.left - canvasRect.left + canvas.scrollLeft;
+            const blockRight = blockLeft + blockRect.width;
+            const blockTop = blockRect.top - canvasRect.top + canvas.scrollTop;
+            const blockBottom = blockTop + blockRect.height;
+            
+            // 检查是否需要水平滚动
+            const marginX = 100; // 留出100px的边距
+            if (blockLeft < canvas.scrollLeft + marginX) {
+                // 事件在左边缘外，向左滚动
+                canvas.scrollLeft = Math.max(0, blockLeft - marginX);
+            } else if (blockRight > canvas.scrollLeft + canvas.clientWidth - marginX) {
+                // 事件在右边缘外，向右滚动
+                canvas.scrollLeft = blockRight - canvas.clientWidth + marginX;
+            }
+            
+            // 检查是否需要垂直滚动
+            const marginY = 100; // 留出100px的边距
+            if (blockTop < canvas.scrollTop + marginY) {
+                // 事件在上边缘外，向上滚动
+                canvas.scrollTop = Math.max(0, blockTop - marginY);
+            } else if (blockBottom > canvas.scrollTop + canvas.clientHeight - marginY) {
+                // 事件在下边缘外，向下滚动
+                canvas.scrollTop = blockBottom - canvas.clientHeight + marginY;
+            }
         }
 
         function checkCollision(event) {
@@ -6753,6 +6848,8 @@ function deleteSelectedEvents() {
             const chapterScaleColorInput = document.getElementById('chapterScaleColor');
             const dayScaleColorInput = document.getElementById('dayScaleColor');
             const gridColorInput = document.getElementById('gridColor');
+            const hiddenImageModeInput = document.getElementById('hiddenImageMode');
+            const surfaceImageModeInput = document.getElementById('surfaceImageMode');
 
             if (!hiddenColorInput || !surfaceColorInput) {
                 // 输入元素还不存在，跳过
@@ -6773,14 +6870,18 @@ function deleteSelectedEvents() {
             const gridRgb = hexToRgb(gridColorHex);
             const dividerBgColorInput = document.getElementById('dividerBgColor');
             const dividerBgColor = dividerBgColorInput ? dividerBgColorInput.value : '#8b5cf6';
+            const hiddenImageMode = hiddenImageModeInput ? hiddenImageModeInput.value : 'cover';
+            const surfaceImageMode = surfaceImageModeInput ? surfaceImageModeInput.value : 'cover';
             
-            applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity || 0.3, dividerBgColor);
+            applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity || 0.3, dividerBgColor, hiddenImageMode, surfaceImageMode);
         }
         
         // 直接应用颜色，不依赖输入框
-        function applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity, dividerBgColor) {
+        function applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity, dividerBgColor, hiddenImageMode, surfaceImageMode) {
             const gridRgb = hexToRgb(gridColorHex || '#8b5cf6');
             opacity = opacity !== undefined ? opacity : 0.3;
+            hiddenImageMode = hiddenImageMode || 'cover';
+            surfaceImageMode = surfaceImageMode || 'cover';
 
             // 网页背景固定为纯黑色（已在CSS中设置）
             // bgColor和bgImage参数保留以兼容旧数据，但不再应用
@@ -6790,7 +6891,22 @@ function deleteSelectedEvents() {
             if (hiddenArea) {
                 if (hiddenImage) {
                     hiddenArea.style.backgroundImage = `url(${hiddenImage}), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
-                    hiddenArea.style.backgroundSize = 'cover, auto, auto';
+                    
+                    // 根据模式设置backgroundSize和backgroundRepeat
+                    if (hiddenImageMode === 'cover') {
+                        hiddenArea.style.backgroundSize = 'cover, auto, auto';
+                        hiddenArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
+                        hiddenArea.style.backgroundPosition = 'center, 0 0, 0 0';
+                    } else if (hiddenImageMode === 'stretch') {
+                        hiddenArea.style.backgroundSize = '100% 100%, auto, auto';
+                        hiddenArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
+                        hiddenArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                    } else if (hiddenImageMode === 'repeat') {
+                        hiddenArea.style.backgroundSize = 'auto, auto, auto';
+                        hiddenArea.style.backgroundRepeat = 'repeat, repeat, repeat';
+                        hiddenArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                    }
+                    
                     hiddenArea.style.backgroundColor = hiddenColor;
                 } else {
                     hiddenArea.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
@@ -6803,7 +6919,22 @@ function deleteSelectedEvents() {
             if (surfaceArea) {
                 if (surfaceImage) {
                     surfaceArea.style.backgroundImage = `url(${surfaceImage}), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
-                    surfaceArea.style.backgroundSize = 'cover, auto, auto';
+                    
+                    // 根据模式设置backgroundSize和backgroundRepeat
+                    if (surfaceImageMode === 'cover') {
+                        surfaceArea.style.backgroundSize = 'cover, auto, auto';
+                        surfaceArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
+                        surfaceArea.style.backgroundPosition = 'center, 0 0, 0 0';
+                    } else if (surfaceImageMode === 'stretch') {
+                        surfaceArea.style.backgroundSize = '100% 100%, auto, auto';
+                        surfaceArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
+                        surfaceArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                    } else if (surfaceImageMode === 'repeat') {
+                        surfaceArea.style.backgroundSize = 'auto, auto, auto';
+                        surfaceArea.style.backgroundRepeat = 'repeat, repeat, repeat';
+                        surfaceArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                    }
+                    
                     surfaceArea.style.backgroundColor = surfaceColor;
                 } else {
                     surfaceArea.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
@@ -6949,7 +7080,321 @@ function deleteSelectedEvents() {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const base64 = e.target.result;
-                document.getElementById(layer + 'Image').value = base64;
+                // 打开裁切界面而不是直接保存
+                showImageCropper(layer, base64);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // 显示图片裁切界面
+        function showImageCropper(layer, base64Image) {
+            const modal = document.createElement('div');
+            modal.id = 'imageCropperModal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:10003;display:flex;align-items:center;justify-content:center;';
+            
+            modal.innerHTML = `
+                <div style="background:#1f2937;border-radius:16px;width:90%;max-width:800px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+                    <div style="padding:20px 24px;border-bottom:1px solid #4b5563;display:flex;justify-content:space-between;align-items:center;">
+                        <h2 style="margin:0;font-size:20px;color:white;">✂️ 裁切图片范围</h2>
+                        <button onclick="closeImageCropper()" style="background:none;border:none;font-size:24px;color:#9ca3af;cursor:pointer;">×</button>
+                    </div>
+                    <div style="flex:1;overflow:hidden;padding:20px;display:flex;align-items:center;justify-content:center;">
+                        <!-- 裁切容器 -->
+                        <div id="cropperContainer" style="position:relative;max-width:100%;max-height:100%;display:inline-block;">
+                            <img id="cropSourceImage" src="${base64Image}" style="display:block;max-width:100%;max-height:calc(90vh - 250px);width:auto;height:auto;user-select:none;">
+                            <!-- 裁切框 -->
+                            <div id="cropBox" style="position:absolute;border:2px solid #3b82f6;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);cursor:move;min-width:50px;min-height:50px;box-sizing:border-box;">
+                                <!-- 八个调整手柄：四角+四边 -->
+                                <div class="crop-handle" data-position="nw" style="position:absolute;top:-6px;left:-6px;width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:nw-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="n" style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:n-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="ne" style="position:absolute;top:-6px;right:-6px;width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:ne-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="e" style="position:absolute;top:50%;right:-6px;transform:translateY(-50%);width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:e-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="se" style="position:absolute;bottom:-6px;right:-6px;width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:se-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="s" style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:s-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="sw" style="position:absolute;bottom:-6px;left:-6px;width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:sw-resize;z-index:10;"></div>
+                                <div class="crop-handle" data-position="w" style="position:absolute;top:50%;left:-6px;transform:translateY(-50%);width:12px;height:12px;background:white;border:2px solid #3b82f6;border-radius:50%;cursor:w-resize;z-index:10;"></div>
+                                <!-- 九宫格辅助线 -->
+                                <div style="position:absolute;top:33.33%;left:0;right:0;height:1px;background:rgba(255,255,255,0.4);pointer-events:none;"></div>
+                                <div style="position:absolute;top:66.66%;left:0;right:0;height:1px;background:rgba(255,255,255,0.4);pointer-events:none;"></div>
+                                <div style="position:absolute;left:33.33%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.4);pointer-events:none;"></div>
+                                <div style="position:absolute;left:66.66%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.4);pointer-events:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding:12px 24px;background:#111827;border-top:1px solid #4b5563;">
+                        <div style="color:#d1d5db;font-size:13px;text-align:center;">
+                            💡 拖动裁切框移动位置，拖动四角调整大小
+                        </div>
+                    </div>
+                    <div style="padding:16px 24px;border-top:1px solid #4b5563;display:flex;gap:12px;">
+                        <button onclick="closeImageCropper()" class="btn btn-secondary" style="flex:1;">取消</button>
+                        <button onclick="saveImageCrop('${layer}')" class="btn btn-primary" style="flex:1;">保存</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 初始化裁切框
+            setTimeout(() => {
+                initCropBox(layer, base64Image);
+            }, 100);
+        }
+        
+        // 初始化裁切框
+        function initCropBox(layer, base64Image) {
+            const img = document.getElementById('cropSourceImage');
+            const cropBox = document.getElementById('cropBox');
+            const container = document.getElementById('cropperContainer');
+            
+            if (!img || !cropBox || !container) {
+                console.log('元素未找到:', { img: !!img, cropBox: !!cropBox, container: !!container });
+                return;
+            }
+            
+            // 等待图片加载
+            if (!img.complete) {
+                img.onload = () => initCropBox(layer, base64Image);
+                return;
+            }
+            
+            // 等待图片尺寸稳定
+            setTimeout(() => {
+                const imgWidth = img.offsetWidth;
+                const imgHeight = img.offsetHeight;
+                
+                if (imgWidth === 0 || imgHeight === 0) {
+                    console.log('图片尺寸为0，等待加载');
+                    setTimeout(() => initCropBox(layer, base64Image), 100);
+                    return;
+                }
+                
+                // 初始裁切框大小（图片的80%）
+                const initialWidth = Math.floor(imgWidth * 0.8);
+                const initialHeight = Math.floor(imgHeight * 0.8);
+                const initialLeft = Math.floor((imgWidth - initialWidth) / 2);
+                const initialTop = Math.floor((imgHeight - initialHeight) / 2);
+                
+                cropBox.style.left = initialLeft + 'px';
+                cropBox.style.top = initialTop + 'px';
+                cropBox.style.width = initialWidth + 'px';
+                cropBox.style.height = initialHeight + 'px';
+                
+                console.log('裁切框初始化:', { 
+                    imgWidth, imgHeight, 
+                    initialLeft, initialTop, 
+                    initialWidth, initialHeight 
+                });
+                
+                // 保存临时数据
+                window.tempImageCropData = {
+                    layer: layer,
+                    base64: base64Image,
+                    imgWidth: imgWidth,
+                    imgHeight: imgHeight,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight
+                };
+                
+                // 绑定拖动事件
+                setupCropBoxDrag();
+            }, 50);
+        }
+        
+        // 设置裁切框拖动
+        function setupCropBoxDrag() {
+            const cropBox = document.getElementById('cropBox');
+            const img = document.getElementById('cropSourceImage');
+            const handles = document.querySelectorAll('.crop-handle');
+            
+            if (!cropBox || !img) {
+                console.log('裁切框或图片未找到');
+                return;
+            }
+            
+            let isDragging = false;
+            let isResizing = false;
+            let resizeHandle = null;
+            let startX = 0;
+            let startY = 0;
+            let startLeft = 0;
+            let startTop = 0;
+            let startWidth = 0;
+            let startHeight = 0;
+            
+            // 裁切框移动
+            const handleCropBoxMouseDown = function(e) {
+                if (e.target.classList.contains('crop-handle')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = cropBox.offsetLeft;
+                startTop = cropBox.offsetTop;
+                e.preventDefault();
+                e.stopPropagation();
+            };
+            
+            cropBox.addEventListener('mousedown', handleCropBoxMouseDown);
+            
+            // 四角和四边调整大小
+            handles.forEach(handle => {
+                handle.addEventListener('mousedown', function(e) {
+                    isResizing = true;
+                    resizeHandle = this.dataset.position;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startLeft = cropBox.offsetLeft;
+                    startTop = cropBox.offsetTop;
+                    startWidth = cropBox.offsetWidth;
+                    startHeight = cropBox.offsetHeight;
+                    e.stopPropagation();
+                    e.preventDefault();
+                });
+            });
+            
+            // 鼠标移动
+            const handleMouseMove = function(e) {
+                if (!isDragging && !isResizing) return;
+                
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                const imgWidth = img.offsetWidth;
+                const imgHeight = img.offsetHeight;
+                
+                if (isDragging) {
+                    // 移动裁切框
+                    let newLeft = startLeft + deltaX;
+                    let newTop = startTop + deltaY;
+                    
+                    // 边界限制
+                    const cropWidth = cropBox.offsetWidth;
+                    const cropHeight = cropBox.offsetHeight;
+                    newLeft = Math.max(0, Math.min(newLeft, imgWidth - cropWidth));
+                    newTop = Math.max(0, Math.min(newTop, imgHeight - cropHeight));
+                    
+                    cropBox.style.left = newLeft + 'px';
+                    cropBox.style.top = newTop + 'px';
+                }
+                
+                if (isResizing) {
+                    // 调整裁切框大小
+                    let newLeft = startLeft;
+                    let newTop = startTop;
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    
+                    // 根据拖动的手柄位置计算新尺寸
+                    if (resizeHandle.includes('n')) {
+                        newTop = startTop + deltaY;
+                        newHeight = startHeight - deltaY;
+                    }
+                    if (resizeHandle.includes('s')) {
+                        newHeight = startHeight + deltaY;
+                    }
+                    if (resizeHandle.includes('w')) {
+                        newLeft = startLeft + deltaX;
+                        newWidth = startWidth - deltaX;
+                    }
+                    if (resizeHandle.includes('e')) {
+                        newWidth = startWidth + deltaX;
+                    }
+                    
+                    // 最小尺寸限制
+                    if (newWidth < 50) {
+                        if (resizeHandle.includes('w')) {
+                            newLeft = startLeft + startWidth - 50;
+                        }
+                        newWidth = 50;
+                    }
+                    if (newHeight < 50) {
+                        if (resizeHandle.includes('n')) {
+                            newTop = startTop + startHeight - 50;
+                        }
+                        newHeight = 50;
+                    }
+                    
+                    // 边界限制
+                    if (newLeft < 0) {
+                        newWidth += newLeft;
+                        newLeft = 0;
+                    }
+                    if (newTop < 0) {
+                        newHeight += newTop;
+                        newTop = 0;
+                    }
+                    if (newLeft + newWidth > imgWidth) {
+                        newWidth = imgWidth - newLeft;
+                    }
+                    if (newTop + newHeight > imgHeight) {
+                        newHeight = imgHeight - newTop;
+                    }
+                    
+                    cropBox.style.left = newLeft + 'px';
+                    cropBox.style.top = newTop + 'px';
+                    cropBox.style.width = newWidth + 'px';
+                    cropBox.style.height = newHeight + 'px';
+                }
+            };
+            
+            // 鼠标释放
+            const handleMouseUp = function() {
+                isDragging = false;
+                isResizing = false;
+                resizeHandle = null;
+            };
+            
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+        
+        // 保存裁切设置
+        function saveImageCrop(layer) {
+            if (!window.tempImageCropData) return;
+            
+            const { base64, imgWidth, imgHeight } = window.tempImageCropData;
+            const cropBox = document.getElementById('cropBox');
+            const img = document.getElementById('cropSourceImage');
+            
+            if (!cropBox || !img) return;
+            
+            // 获取裁切框的位置和大小
+            const cropLeft = cropBox.offsetLeft;
+            const cropTop = cropBox.offsetTop;
+            const cropWidth = cropBox.offsetWidth;
+            const cropHeight = cropBox.offsetHeight;
+            
+            // 计算实际图片的裁切区域（考虑显示尺寸和实际尺寸的比例）
+            const sourceImg = new Image();
+            sourceImg.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 计算缩放比例
+                const scaleX = sourceImg.width / imgWidth;
+                const scaleY = sourceImg.height / imgHeight;
+                
+                // 计算实际裁切区域
+                const actualLeft = cropLeft * scaleX;
+                const actualTop = cropTop * scaleY;
+                const actualWidth = cropWidth * scaleX;
+                const actualHeight = cropHeight * scaleY;
+                
+                // 设置canvas为裁切后的尺寸
+                canvas.width = actualWidth;
+                canvas.height = actualHeight;
+                
+                // 绘制裁切后的图片
+                ctx.drawImage(
+                    sourceImg,
+                    actualLeft, actualTop, actualWidth, actualHeight,  // 源区域
+                    0, 0, actualWidth, actualHeight  // 目标区域
+                );
+                
+                // 转换为base64
+                const croppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // 保存裁切后的图片
+                document.getElementById(layer + 'Image').value = croppedBase64;
                 
                 // 显示缩略图
                 const preview = document.getElementById(layer + 'ImagePreview');
@@ -6957,15 +7402,35 @@ function deleteSelectedEvents() {
                 const placeholder = document.getElementById(layer + 'ImagePlaceholder');
                 
                 if (preview && previewImg && placeholder) {
-                    previewImg.src = base64;
+                    previewImg.src = croppedBase64;
                     preview.style.display = 'block';
                     placeholder.style.display = 'none';
                 }
                 
+                closeImageCropper();
                 updateColors();
-                customAlert('✅ 图片已上传！');
+                customAlert('✅ 图片已保存！');
             };
-            reader.readAsDataURL(file);
+            
+            sourceImg.src = base64;
+        }
+        
+        // 关闭裁切界面
+        function closeImageCropper() {
+            const modal = document.getElementById('imageCropperModal');
+            if (modal) {
+                modal.remove();
+            }
+            
+            // 清空文件输入框，允许重新上传相同文件
+            if (window.tempImageCropData && window.tempImageCropData.layer) {
+                const fileInput = document.getElementById(window.tempImageCropData.layer + 'ImageFile');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+            }
+            
+            window.tempImageCropData = null;
         }
         
         // 清除图片
@@ -6992,8 +7457,10 @@ function deleteSelectedEvents() {
                 bgImage: '', // 不使用网页背景图
                 hiddenColor: document.getElementById('hiddenColor').value,
                 hiddenImage: document.getElementById('hiddenImage').value,
+                hiddenImageMode: document.getElementById('hiddenImageMode').value,
                 surfaceColor: document.getElementById('surfaceColor').value,
                 surfaceImage: document.getElementById('surfaceImage').value,
+                surfaceImageMode: document.getElementById('surfaceImageMode').value,
                 gridOpacity: parseInt(document.getElementById('gridOpacity').value),
                 gridColor: document.getElementById('gridColor').value,
                 dividerBgColor: document.getElementById('dividerBgColor').value,
