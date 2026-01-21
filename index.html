@@ -415,6 +415,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             user-select: none;
             overflow: visible;
+            z-index: 20;  /* 确保在格子线(z-index:10)之上 */
         }
         .event-block.editable {
             cursor: grab;
@@ -1912,6 +1913,7 @@
 
 
                     <button class="btn btn-secondary btn-sm" onclick="showColorCustomizer()"><span class="btn-icon">🎨</span><span class="btn-text"> 颜色设置</span></button>
+                    <button class="btn btn-secondary btn-sm" id="toggleGridBtn" onclick="toggleGridLines()"><span class="btn-icon">📐</span><span class="btn-text"> 格子线</span></button>
                     <button class="btn btn-primary btn-sm" id="editModeBtn" onclick="toggleEditMode()"><span class="btn-icon">✎</span><span class="btn-text"> 编辑</span></button>
 
                     <button class="btn btn-success btn-sm" id="addEventBtn" onclick="showAddEventForm()" style="margin-left: auto; display: none;"><span class="btn-icon">➕</span><span class="btn-text"> 添加事件</span></button>
@@ -1990,9 +1992,9 @@
                 <button class="modal-close" onclick="closeEventDetail()">×</button>
             </div>
             <div class="modal-body" id="eventDetailBody"></div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display: flex; justify-content: space-between;">
+                <button class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()">🗑️ 删除</button>
                 <button class="btn btn-primary" onclick="editEvent()">✏️ 编辑</button>
-                <button class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">🗑️ 删除</button>
             </div>
         </div>
     </div>
@@ -2029,12 +2031,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">图标Emoji（可选）</label>
-                        <input type="text" class="form-input" id="eventEmoji" placeholder="输入emoji，如：🎉 🔥 ⭐ 💡（留空使用默认）" maxlength="2">
-                        <div class="hint">显示在事件标题前面，留空则使用默认图标（暗层🌑 表层☀️）</div>
-                    </div>
-
-                    <div class="form-group">
                         <label class="form-label">详细描述</label>
                         <textarea class="form-textarea" id="eventDescription" placeholder="详细描述事件内容"></textarea>
                     </div>
@@ -2057,6 +2053,18 @@
                         <input type="number" class="form-input" id="eventLayer" value="0" min="0">
                         <div class="hint">提示：行位置决定事件的垂直位置，0在最上方（章节范围大的事件建议放在上方）</div>
                         <div id="layerSuggestion" style="color: #10b981; font-size: 13px; margin-top: 5px; display: none;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🌓 事件层级</label>
+                        <select class="form-input" id="eventLayerType" onchange="updateLayerTypeHint()">
+                            <option value="hidden">🌑 暗层（幕后布局）</option>
+                            <option value="surface" selected>☀️ 表层（日常事件）</option>
+                        </select>
+                        <div class="hint" id="layerTypeHint">
+                            <strong>表层：</strong>读者可见的日常事件和明线情节<br>
+                            <strong>暗层：</strong>幕后布局、伏笔和隐藏的因果链
+                        </div>
                     </div>
 
 
@@ -2405,21 +2413,21 @@
                         <!-- 分隔线、章节、天数：1x3网格，小方块 -->
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">
                             <!-- 分隔线颜色 -->
-                            <div onclick="document.getElementById('dividerColor').click()" id="dividerColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #a78bfa; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                            <div id="dividerColorBox" style="position: relative; width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #a78bfa; cursor: pointer; font-weight: bold; font-size: 20px; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
                                 ➖ 分隔线
-                                <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors(); updateColorBox('dividerColor', 'dividerColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                                <input type="color" id="dividerColor" value="#a78bfa" onchange="updateColors(); updateColorBox('dividerColor', 'dividerColorBox')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
                             </div>
 
                             <!-- 章节刻度颜色 -->
-                            <div onclick="document.getElementById('chapterScaleColor').click()" id="chapterScaleColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #d8b4fe; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                            <div id="chapterScaleColorBox" style="position: relative; width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #d8b4fe; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
                                 📖 章节
-                                <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors(); updateColorBox('chapterScaleColor', 'chapterScaleColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                                <input type="color" id="chapterScaleColor" value="#d8b4fe" onchange="updateColors(); updateColorBox('chapterScaleColor', 'chapterScaleColorBox')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
                             </div>
 
                             <!-- 天数刻度颜色 -->
-                            <div onclick="document.getElementById('dayScaleColor').click()" id="dayScaleColorBox" style="width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fbbf24; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
+                            <div id="dayScaleColorBox" style="position: relative; width: 100%; aspect-ratio: 1; border: 2px solid #4b5563; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fbbf24; cursor: pointer; font-weight: bold; font-size: 20px; color: #1f2937; text-shadow: 0 1px 2px rgba(255,255,255,0.5); transition: transform 0.2s; text-align: center; padding: 5px;">
                                 📅 天数
-                                <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors(); updateColorBox('dayScaleColor', 'dayScaleColorBox')" style="position: absolute; opacity: 0; pointer-events: none;">
+                                <input type="color" id="dayScaleColor" value="#fbbf24" onchange="updateColors(); updateColorBox('dayScaleColor', 'dayScaleColorBox')" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
                             </div>
                         </div>
 
@@ -3448,7 +3456,11 @@
                 0.3,
                 colorSettings.dividerBgColor || '#8b5cf6',
                 colorSettings.hiddenImageMode || 'cover',
-                colorSettings.surfaceImageMode || 'cover'
+                colorSettings.surfaceImageMode || 'cover',
+                colorSettings.dividerColor || '#a78bfa',
+                colorSettings.chapterScaleColor || '#d8b4fe',
+                colorSettings.dayScaleColor || '#fbbf24',
+                colorSettings.showGridLines !== undefined ? colorSettings.showGridLines : true
             );
             
             // 恢复图片模式选择器的值
@@ -4290,6 +4302,21 @@ function deleteSelectedEvents() {
             // 重新应用颜色和图片设置（修复图片消失问题）
             setTimeout(() => {
                 applyColors();
+                
+                // 更新格子线按钮状态
+                const book = getCurrentBook();
+                const showGridLines = book.data.colorSettings?.showGridLines !== undefined ? 
+                    book.data.colorSettings.showGridLines : true;
+                const btn = document.getElementById('toggleGridBtn');
+                if (btn) {
+                    if (showGridLines) {
+                        btn.classList.remove('btn-secondary');
+                        btn.classList.add('btn-primary');
+                    } else {
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-secondary');
+                    }
+                }
             }, 50);
         }
 
@@ -4488,7 +4515,9 @@ function deleteSelectedEvents() {
             // 构建分层HTML
             grid.innerHTML = `
                 <!-- 暗层区域 -->
-                <div class="hidden-layer-area" style="min-width: ${timelineWidth}px; height: ${hiddenAreaHeight}px;">
+                <div class="hidden-layer-area" style="position: relative; min-width: ${timelineWidth}px; height: ${hiddenAreaHeight}px;">
+                    <!-- 格子线层（在背景图片之上） -->
+                    <div class="grid-lines-layer hidden-grid-lines" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 10;"></div>
                     <div class="layer-label hidden-layer-label" id="hiddenLabel">🌑 暗层（幕后布局）</div>
                     ${hiddenEvents.map(e => renderEventBlock(e, true)).join('')}
                 </div>
@@ -4555,7 +4584,9 @@ function deleteSelectedEvents() {
                 </div>
 
                 <!-- 表层区域 -->
-                <div class="surface-layer-area" style="min-width: ${timelineWidth}px; height: ${surfaceAreaHeight}px;">
+                <div class="surface-layer-area" style="position: relative; min-width: ${timelineWidth}px; height: ${surfaceAreaHeight}px;">
+                    <!-- 格子线层（在背景图片之上） -->
+                    <div class="grid-lines-layer surface-grid-lines" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 10;"></div>
                     <div class="layer-label surface-layer-label" id="surfaceLabel">☀️ 表层（日常事件）</div>
                     ${surfaceEvents.map(e => renderEventBlock(e, false)).join('')}
                 </div>
@@ -5574,9 +5605,7 @@ function deleteSelectedEvents() {
                 <div class="info-box">
                     <h3>⏱️ 时间信息</h3>
                     <p><strong>所属天数：</strong>${dayName}</p>
-                    <p><strong>起始：</strong>${formatChapter(event.startTime)}</p>
-                    <p><strong>持续：</strong>${event.duration}章</p>
-                    <p><strong>结束：</strong>${formatChapter(event.startTime + event.duration - 1)}</p>
+                    <p><strong>章节范围：</strong>${formatChapter(event.startTime)}到${formatChapter(event.startTime + event.duration - 1)} (${event.duration}章)</p>
                     <p><strong>所在行位置：</strong>第${event.layer}行</p>
                 </div>
                 ${event.tags && event.tags.length > 0 ? `
@@ -5618,7 +5647,7 @@ function deleteSelectedEvents() {
 
             const deleteBtn = document.getElementById('deleteEventBtn');
             if (deleteBtn) {
-                deleteBtn.style.display = editMode ? 'block' : 'none';
+                deleteBtn.style.display = 'block'; // 始终显示删除按钮
             }
 
             modal.classList.add('show');
@@ -5704,10 +5733,15 @@ function deleteSelectedEvents() {
             document.getElementById('eventFormTitle').textContent = '✏️ 编辑事件';
             document.getElementById('eventTitle').value = selectedEvent.title;
             document.getElementById('eventDescription').value = selectedEvent.description;
-            document.getElementById('eventEmoji').value = selectedEvent.emoji || '';
             document.getElementById('eventStartTime').value = selectedEvent.startTime;
             document.getElementById('eventDuration').value = selectedEvent.duration;
             document.getElementById('eventLayer').value = selectedEvent.layer;
+            
+            // 设置eventLayerType
+            const eventLayerTypeSelect = document.getElementById('eventLayerType');
+            if (eventLayerTypeSelect) {
+                eventLayerTypeSelect.value = selectedEvent.eventLayer || 'surface';
+            }
 
             renderTagsList();
             renderAvailableTags(); // 渲染可选标签
@@ -5731,6 +5765,11 @@ function deleteSelectedEvents() {
                 }
             }, 50);
         }
+        
+        // 更新事件层级提示
+        function updateLayerTypeHint() {
+            // 提示信息已在HTML中静态显示，此函数保留以防未来需要动态更新
+        }
 
         function closeEventForm() {
             document.getElementById('eventFormModal').classList.remove('show');
@@ -5742,7 +5781,6 @@ function deleteSelectedEvents() {
             // 清空表单
             document.getElementById('eventTitle').value = '';
             document.getElementById('eventDescription').value = '';
-            document.getElementById('eventEmoji').value = '';
             const eventColorInput = document.getElementById('eventColor');
             eventColorInput.value = '#ff0000';
             delete eventColorInput.dataset.cleared;
@@ -5972,10 +6010,10 @@ function deleteSelectedEvents() {
         function saveEvent() {
             const title = document.getElementById('eventTitle').value.trim();
             const description = document.getElementById('eventDescription').value.trim();
-            const emoji = document.getElementById('eventEmoji').value.trim();
             const startTime = parseInt(document.getElementById('eventStartTime').value);
             const duration = parseInt(document.getElementById('eventDuration').value) || 1;
             let layer = parseInt(document.getElementById('eventLayer').value) || 0;
+            const eventLayer = document.getElementById('eventLayerType')?.value || 'surface'; // 读取暗层/表层
             const colorInput = document.getElementById('eventColor');
             let eventColor = '';
 
@@ -6020,9 +6058,9 @@ function deleteSelectedEvents() {
                     ).then(confirmed => {
                         if (confirmed) {
                             // 用户确认插入，执行下移操作
-                            shiftEventsDown(startTime, duration, layer);
+                            shiftEventsDown(startTime, duration, layer, eventLayer);
                             // 继续添加事件
-                            finalizeSaveEvent(title, description, emoji, startTime, duration, layer, eventColor);
+                            finalizeSaveEvent(title, description, startTime, duration, layer, eventColor, eventLayer);
                         } else {
                             // 用户取消，不保存
                             return;
@@ -6033,20 +6071,22 @@ function deleteSelectedEvents() {
             }
 
             // 没有冲突或是编辑模式，直接保存
-            finalizeSaveEvent(title, description, emoji, startTime, duration, layer, eventColor);
+            finalizeSaveEvent(title, description, startTime, duration, layer, eventColor, eventLayer);
         }
 
         // 将指定layer及以下的重叠事件下移一行（完整递归级联）
-        function shiftEventsDown(startTime, duration, targetLayer) {
+        function shiftEventsDown(startTime, duration, targetLayer, eventLayer) {
             const eventEnd = startTime + duration;
+            const targetEventLayer = eventLayer || 'surface';
             let totalShifted = 0;
             const shiftedEvents = []; // 记录所有被下移的事件
 
             // 递归级联下移函数
             function cascadeShift(layer) {
-                // 找出该层所有需要下移的事件（和新事件时间重叠）
+                // 找出该层所有需要下移的事件（和新事件时间重叠，且在同一eventLayer）
                 const eventsAtLayer = events.filter(e => {
                     if (e.layer !== layer) return false;
+                    if ((e.eventLayer || 'surface') !== targetEventLayer) return false; // 只影响同一层级
                     const eEnd = e.startTime + e.duration;
                     return !(eventEnd <= e.startTime || startTime >= eEnd);
                 });
@@ -6063,7 +6103,9 @@ function deleteSelectedEvents() {
 
                 // 检查这些事件下移后是否会和目标层（layer+1）的其他事件冲突
                 const targetLayerEvents = events.filter(e =>
-                    e.layer === layer + 1 && !shiftedEvents.includes(e)
+                    e.layer === layer + 1 && 
+                    !shiftedEvents.includes(e) &&
+                    (e.eventLayer || 'surface') === targetEventLayer // 同一层级
                 );
 
                 // 对于每个要下移的事件，检查是否会和目标层冲突
@@ -6123,14 +6165,14 @@ function deleteSelectedEvents() {
         }
 
         // 完成事件保存的实际逻辑
-        function finalizeSaveEvent(title, description, emoji, startTime, duration, layer, eventColor) {
+        function finalizeSaveEvent(title, description, startTime, duration, layer, eventColor, eventLayer) {
             const eventData = {
                 title,
                 description,
-                emoji: emoji || '', // 保存emoji，为空则使用默认
                 startTime,
                 duration,
                 layer,
+                eventLayer: eventLayer || 'surface', // 保存暗层/表层
                 eventColor: eventColor, // 保存事件独立颜色
                 tags: currentTags,
                 causes: currentCauses,
@@ -6718,7 +6760,8 @@ function deleteSelectedEvents() {
             dividerBgColor: '#8b5cf6',
             dividerColor: '#a78bfa',
             chapterScaleColor: '#d8b4fe',
-            dayScaleColor: '#fbbf24'
+            dayScaleColor: '#fbbf24',
+            showGridLines: true
         };
 
         function showColorCustomizer() {
@@ -6824,6 +6867,38 @@ function deleteSelectedEvents() {
             }
         }
 
+        function toggleGridLines() {
+            const book = getCurrentBook();
+            const currentState = book.data.colorSettings?.showGridLines !== undefined ? 
+                book.data.colorSettings.showGridLines : true;
+            
+            // 切换状态
+            const newState = !currentState;
+            
+            // 保存到书籍数据
+            if (!book.data.colorSettings) {
+                book.data.colorSettings = {};
+            }
+            book.data.colorSettings.showGridLines = newState;
+            customColors.showGridLines = newState;
+            
+            // 更新按钮样式
+            const btn = document.getElementById('toggleGridBtn');
+            if (btn) {
+                if (newState) {
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+                } else {
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-secondary');
+                }
+            }
+            
+            // 立即应用
+            applyColors();
+            autoSave();
+        }
+
         function updateColors() {
             // 更新透明度显示
             const opacityInput = document.getElementById('gridOpacity');
@@ -6873,74 +6948,95 @@ function deleteSelectedEvents() {
             const hiddenImageMode = hiddenImageModeInput ? hiddenImageModeInput.value : 'cover';
             const surfaceImageMode = surfaceImageModeInput ? surfaceImageModeInput.value : 'cover';
             
-            applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity || 0.3, dividerBgColor, hiddenImageMode, surfaceImageMode);
+            // 从书籍数据读取showGridLines
+            const book = getCurrentBook();
+            const showGridLines = book.data.colorSettings?.showGridLines !== undefined ? 
+                book.data.colorSettings.showGridLines : true;
+            
+            applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity || 0.3, dividerBgColor, hiddenImageMode, surfaceImageMode, dividerColor, chapterScaleColor, dayScaleColor, showGridLines);
         }
         
         // 直接应用颜色，不依赖输入框
-        function applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity, dividerBgColor, hiddenImageMode, surfaceImageMode) {
+        function applyColorsDirectly(bgColor, bgImage, hiddenColor, hiddenImage, surfaceColor, surfaceImage, gridColorHex, opacity, dividerBgColor, hiddenImageMode, surfaceImageMode, dividerColor, chapterScaleColor, dayScaleColor, showGridLines) {
             const gridRgb = hexToRgb(gridColorHex || '#8b5cf6');
             opacity = opacity !== undefined ? opacity : 0.3;
             hiddenImageMode = hiddenImageMode || 'cover';
             surfaceImageMode = surfaceImageMode || 'cover';
+            dividerColor = dividerColor || '#a78bfa';
+            chapterScaleColor = chapterScaleColor || '#d8b4fe';
+            dayScaleColor = dayScaleColor || '#fbbf24';
+            showGridLines = showGridLines !== undefined ? showGridLines : true;
 
             // 网页背景固定为纯黑色（已在CSS中设置）
             // bgColor和bgImage参数保留以兼容旧数据，但不再应用
 
-            // 应用暗层背景
+            // 应用暗层背景（只有颜色和图片，不包括格子线）
             const hiddenArea = document.querySelector('.hidden-layer-area');
             if (hiddenArea) {
                 if (hiddenImage) {
-                    hiddenArea.style.backgroundImage = `url(${hiddenImage}), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
+                    hiddenArea.style.backgroundImage = `url(${hiddenImage})`;
                     
                     // 根据模式设置backgroundSize和backgroundRepeat
                     if (hiddenImageMode === 'cover') {
-                        hiddenArea.style.backgroundSize = 'cover, auto, auto';
-                        hiddenArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
-                        hiddenArea.style.backgroundPosition = 'center, 0 0, 0 0';
+                        hiddenArea.style.backgroundSize = 'cover';
+                        hiddenArea.style.backgroundRepeat = 'no-repeat';
+                        hiddenArea.style.backgroundPosition = 'center';
                     } else if (hiddenImageMode === 'stretch') {
-                        hiddenArea.style.backgroundSize = '100% 100%, auto, auto';
-                        hiddenArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
-                        hiddenArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                        hiddenArea.style.backgroundSize = '100% 100%';
+                        hiddenArea.style.backgroundRepeat = 'no-repeat';
+                        hiddenArea.style.backgroundPosition = '0 0';
                     } else if (hiddenImageMode === 'repeat') {
-                        hiddenArea.style.backgroundSize = 'auto, auto, auto';
-                        hiddenArea.style.backgroundRepeat = 'repeat, repeat, repeat';
-                        hiddenArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                        hiddenArea.style.backgroundSize = 'auto';
+                        hiddenArea.style.backgroundRepeat = 'repeat';
+                        hiddenArea.style.backgroundPosition = '0 0';
                     }
                     
                     hiddenArea.style.backgroundColor = hiddenColor;
                 } else {
-                    hiddenArea.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
+                    hiddenArea.style.backgroundImage = 'none';
                     hiddenArea.style.backgroundColor = hiddenColor;
                 }
             }
 
-            // 应用表层背景
+            // 应用表层背景（只有颜色和图片，不包括格子线）
             const surfaceArea = document.querySelector('.surface-layer-area');
             if (surfaceArea) {
                 if (surfaceImage) {
-                    surfaceArea.style.backgroundImage = `url(${surfaceImage}), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
+                    surfaceArea.style.backgroundImage = `url(${surfaceImage})`;
                     
                     // 根据模式设置backgroundSize和backgroundRepeat
                     if (surfaceImageMode === 'cover') {
-                        surfaceArea.style.backgroundSize = 'cover, auto, auto';
-                        surfaceArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
-                        surfaceArea.style.backgroundPosition = 'center, 0 0, 0 0';
+                        surfaceArea.style.backgroundSize = 'cover';
+                        surfaceArea.style.backgroundRepeat = 'no-repeat';
+                        surfaceArea.style.backgroundPosition = 'center';
                     } else if (surfaceImageMode === 'stretch') {
-                        surfaceArea.style.backgroundSize = '100% 100%, auto, auto';
-                        surfaceArea.style.backgroundRepeat = 'no-repeat, repeat, repeat';
-                        surfaceArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                        surfaceArea.style.backgroundSize = '100% 100%';
+                        surfaceArea.style.backgroundRepeat = 'no-repeat';
+                        surfaceArea.style.backgroundPosition = '0 0';
                     } else if (surfaceImageMode === 'repeat') {
-                        surfaceArea.style.backgroundSize = 'auto, auto, auto';
-                        surfaceArea.style.backgroundRepeat = 'repeat, repeat, repeat';
-                        surfaceArea.style.backgroundPosition = '0 0, 0 0, 0 0';
+                        surfaceArea.style.backgroundSize = 'auto';
+                        surfaceArea.style.backgroundRepeat = 'repeat';
+                        surfaceArea.style.backgroundPosition = '0 0';
                     }
                     
                     surfaceArea.style.backgroundColor = surfaceColor;
                 } else {
-                    surfaceArea.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
+                    surfaceArea.style.backgroundImage = 'none';
                     surfaceArea.style.backgroundColor = surfaceColor;
                 }
             }
+            
+            // 应用格子线到独立的格子线层
+            const gridLinesLayers = document.querySelectorAll('.grid-lines-layer');
+            gridLinesLayers.forEach(layer => {
+                if (showGridLines) {
+                    layer.style.backgroundImage = `repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) calc(var(--chapter-width, 50px) - 2px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity}) var(--chapter-width, 50px)), repeating-linear-gradient(90deg, transparent 0, transparent calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) calc(var(--day-width, 10px) - 1px), rgba(${gridRgb.r}, ${gridRgb.g}, ${gridRgb.b}, ${opacity * 0.3}) var(--day-width, 10px))`;
+                    layer.style.display = 'block';
+                } else {
+                    layer.style.backgroundImage = 'none';
+                    layer.style.display = 'none';
+                }
+            });
 
             // 应用分隔线颜色和背景
             const dividers = document.querySelectorAll('.layer-divider');
@@ -7452,6 +7548,7 @@ function deleteSelectedEvents() {
         }
 
         function saveColors() {
+            const book = getCurrentBook();
             const colorSettings = {
                 bgColor: '#000000', // 固定为黑色
                 bgImage: '', // 不使用网页背景图
@@ -7466,13 +7563,13 @@ function deleteSelectedEvents() {
                 dividerBgColor: document.getElementById('dividerBgColor').value,
                 dividerColor: document.getElementById('dividerColor') ? document.getElementById('dividerColor').value : '#a78bfa',
                 chapterScaleColor: document.getElementById('chapterScaleColor') ? document.getElementById('chapterScaleColor').value : '#d8b4fe',
-                dayScaleColor: document.getElementById('dayScaleColor') ? document.getElementById('dayScaleColor').value : '#fbbf24'
+                dayScaleColor: document.getElementById('dayScaleColor') ? document.getElementById('dayScaleColor').value : '#fbbf24',
+                showGridLines: book.data.colorSettings?.showGridLines !== undefined ? book.data.colorSettings.showGridLines : true
             };
             
             customColors = colorSettings;
 
             // 保存到当前书籍的data中
-            const book = getCurrentBook();
             book.data.colorSettings = colorSettings;
             console.log('💾 保存颜色设置到书籍数据:', colorSettings);
 
@@ -7501,7 +7598,8 @@ function deleteSelectedEvents() {
                 dividerBgColor: '#8b5cf6',
                 dividerColor: '#a78bfa',
                 chapterScaleColor: '#d8b4fe',
-                dayScaleColor: '#fbbf24'
+                dayScaleColor: '#fbbf24',
+                showGridLines: true
             };
 
             showColorCustomizer();
@@ -8837,7 +8935,7 @@ function deleteSelectedEvents() {
     </script>
 
 <!-- FAB浮动按钮HTML (插入到</body>之前) -->
-<div id="fabContainer" style="position: fixed; right: 20px; bottom: 20px; z-index: 99999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+<div id="fabContainer" style="position: fixed; right: 20px; bottom: 20px; z-index: 999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
     <div id="fabMenu" style="display: none; flex-direction: column; background: white; border-radius: 16px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
         <button class="fab-menu-item" onclick="showDayManager(); document.getElementById('fabMenu').style.display='none';" style="background: transparent; color: #1f2937; border: none; border-radius: 10px; padding: 14px 20px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; min-width: 160px; border-bottom: 1px solid #f3f4f6;">
             ⚙️ 天数
